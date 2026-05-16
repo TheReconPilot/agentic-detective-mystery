@@ -7,9 +7,12 @@ the router can return one typed object instead of a tagged tuple.
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, TypedDict
+from typing import TYPE_CHECKING, Annotated, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from mystery.models import CaseBible
 
 _StrictAction = ConfigDict(extra="forbid", frozen=True)
 
@@ -77,3 +80,22 @@ class GameState(TypedDict):
 
     pending_action: Action | None
     last_output: str
+
+
+def initial_state(bible: CaseBible) -> GameState:
+    """Build the starting GameState: the player walks in on the crime scene."""
+    here = bible.victim.location_of_death_id
+    return GameState(
+        current_location_id=here,
+        revealed_clue_ids=[],
+        visited_location_ids=[here],
+        notebook=[
+            f"VICTIM: {bible.victim.name} ({bible.victim.role}) — found in "
+            f"{here} at t={bible.victim.time_of_death}.",
+        ],
+        turn_count=0,
+        accusation=None,
+        done=False,
+        pending_action=None,
+        last_output="",
+    )

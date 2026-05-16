@@ -180,11 +180,11 @@ CI matrix runs lint → type-check → unit+integration tests. The `eval` marker
 
 Each milestone ends with green tests and a runnable demo.
 
-- **M1 — Skeleton** Project layout, `uv sync`, ruff + mypy + pytest wired, CI green on an empty test. Typer CLI prints help.
-- **M2 — Case bible** `CaseBible` schemas + validators, deterministic generator behind a seed (real LLM, but stubbable). Unit tests cover invariants. `mystery new --seed 42` writes a bible JSON.
-- **M3 — RAG layer** Chunking strategy (per-suspect + per-location), Chroma persistence, character-scoped retriever. Integration test: querying as suspect A never returns suspect B's private knowledge chunks.
-- **M4 — Suspect agent** Single suspect sub-graph end-to-end with a fake LLM. Then with Ollama. Manual smoke: interrogate one suspect about their alibi.
-- **M5 — Game loop** Router, tools (move/examine/notebook/accuse), full LangGraph, win condition. Playable end-to-end in the CLI.
+- **M1 — Skeleton** ✅ Done. Project layout, `uv sync`, ruff + mypy + pytest wired, pre-commit hooks, typer CLI prints help.
+- **M2 — Case bible** ✅ Done. `CaseBible` Pydantic schemas, eight semantic invariants in `case_gen/validate.py`, retry-loop generator behind a `BibleLLM` Protocol (stubbed in tests, Ollama-backed in production), `mystery new --seed N` writes `cases/N.json`.
+- **M3 — RAG layer** ✅ Done. Bible → typed `Chunk` objects with `scope` + `character_id` metadata; Chroma index (in-memory for tests, persist-dir-capable for production); `suspect_retriever` filters on metadata. Integration test probes each suspect's retriever with every *other* suspect's private knowledge and verifies no foreign chunks leak.
+- **M4 — Suspect agent** ✅ Done. `respond_as_suspect(suspect, retriever, chat_model, question)` chains retrieval + persona prompt + chat invocation. Implemented as a plain LangChain composition rather than a LangGraph sub-graph — interrogation turns are strictly linear, so a graph would add ceremony without value. Promote to a sub-graph only if internal branching becomes necessary (e.g., alibi-specific retrieval). `mystery interrogate --seed N --suspect X "question"` is the manual smoke surface.
+- **M5 — Game loop** Router, tools (move/examine/notebook/accuse), full LangGraph, win condition. Playable end-to-end in the CLI. Should also persist the Chroma index to disk so `play` doesn't re-embed the bible on every turn (currently `interrogate` builds the index in-memory each invocation — acceptable for one-shot, untenable for a game loop).
 - **M6 — Evals** Optimal-player agent, consistency judge, solvability harness, 20 frozen cases. README publishes the numbers.
 - **M7 — Polish** README with architecture diagram, recorded demo (asciinema), badges (CI, coverage), tagged v0.1.0 release.
 

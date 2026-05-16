@@ -1,0 +1,67 @@
+# agentic-detective-mystery
+
+A local-first text adventure where you interrogate LLM-driven suspects to solve a procedurally generated murder. The architectural keystone is a private **case bible** — victim, suspects, real killer, motives, true and false alibis, physical clues, timeline — generated up-front and never shown to the player. Every suspect agent answers via RAG over a *character-scoped* slice of that bible, so long conversations cannot drift away from canonical truth. Suspects may lie within an explicit `deception_policy`, but they cannot invent facts.
+
+Built on **LangGraph + LangChain + Chroma**, running entirely on **local Ollama models** (3B on a 4 GB laptop GPU, 8B–14B on a 16 GB workstation). Designed as a portfolio project: every claim it makes is backed by a test or an eval that produces a number.
+
+> **Status:** Milestones M1–M4 are complete (schemas, generator, RAG, suspect agent). M5 (game loop) and M6 (evals) are in progress. See [PLAN.md](PLAN.md) for the full roadmap.
+
+## Why this design
+
+LLM narrative agents drift. They forget, contradict themselves, and confabulate. The usual workarounds (longer context, summarisation) are band-aids. This project tries a different one: **ground every response in a retrieval over a frozen, structured truth document**. The agent's job becomes "retrieve what your character knows, then phrase it according to your deception policy" — not "imagine a character from scratch every turn".
+
+The case bible enforces three properties:
+
+1. **Consistency** — a suspect can't contradict the bible, because their retrievable knowledge *is* the bible.
+2. **Solvability** — generated invariants (`validate_bible`) guarantee at least one clue incriminates the killer and the killer's alibi is provably false.
+3. **Privacy** — `suspect_retriever` filters on metadata so suspect A can never retrieve suspect B's private chunks. The integration test probes this adversarially.
+
+## Quickstart
+
+```bash
+# Prerequisites: Python 3.13, uv, Ollama
+ollama pull qwen2.5:3b-instruct-q4_K_M     # or qwen2.5:14b-instruct-q4_K_M on a 16 GB GPU
+ollama pull nomic-embed-text
+
+# Install
+uv sync
+
+# Generate a case (writes cases/42.json)
+uv run mystery new --seed 42
+
+# Interrogate one suspect (smoke surface for the agent)
+uv run mystery interrogate --seed 42 --suspect butler "Where were you at nine o'clock?"
+```
+
+The full game loop (`mystery play`) and the eval suite (`mystery eval`) land in M5 and M6.
+
+### Switching hardware tiers
+
+Models are env-vared, so the same code runs on either:
+
+```bash
+# 4 GB laptop GPU
+export MYSTERY_LLM_MODEL=qwen2.5:3b-instruct-q4_K_M
+
+# 16 GB workstation
+export MYSTERY_LLM_MODEL=qwen2.5:14b-instruct-q4_K_M
+```
+
+## Development
+
+```bash
+uv run ruff check . && uv run ruff format .
+uv run mypy src tests
+uv run pytest                   # unit + integration, fully offline
+uv run pytest -m eval           # opt-in: real-LLM evals (M6)
+```
+
+Pre-commit hooks (`ruff-check`, `ruff-format`) run on every commit. Tests use `DeterministicFakeEmbedding` and `FakeListChatModel` from `langchain-core` so the default suite needs no network or GPU.
+
+## Layout
+
+See [CLAUDE.md](CLAUDE.md) for an annotated tree and the key invariants the codebase enforces. See [PLAN.md](PLAN.md) for the implementation roadmap, the eval strategy, and milestone status.
+
+## License
+
+TBD.

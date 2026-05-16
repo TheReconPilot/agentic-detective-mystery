@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import typer
@@ -9,6 +10,8 @@ from mystery import __version__
 from mystery.agents.suspect import respond_as_suspect
 from mystery.case_gen.generator import generate_bible
 from mystery.config import Settings
+from mystery.evals.consistency import run_consistency_eval
+from mystery.evals.solvability import run_solvability_eval
 from mystery.graph.game import build_game_graph
 from mystery.graph.router import ParseError, parse_action
 from mystery.graph.state import GameState, initial_state
@@ -18,12 +21,11 @@ from mystery.rag.indexer import build_index, get_or_build_index
 from mystery.rag.retriever import suspect_retriever
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from langchain_core.embeddings import Embeddings
     from langchain_core.language_models import BaseChatModel
 
     from mystery.case_gen.generator import BibleLLM
+    from mystery.evals.consistency import ConsistencyJudge
 
 app = typer.Typer(
     name="mystery",
@@ -63,6 +65,20 @@ def _default_embeddings_factory(settings: Settings) -> Embeddings:
         model=settings.embed_model,
         base_url=settings.ollama_base_url,
     )
+
+
+def _default_judge_factory(settings: Settings) -> ConsistencyJudge:
+    """Build the production consistency judge — uses a 0-temp chat for stable verdicts."""
+    from langchain_ollama import ChatOllama
+
+    from mystery.evals.consistency import LLMConsistencyJudge
+
+    judge_chat = ChatOllama(
+        model=settings.llm_model,
+        temperature=0.0,
+        base_url=settings.ollama_base_url,
+    )
+    return LLMConsistencyJudge(judge_chat)
 
 
 def _load_bible(settings: Settings, seed: int) -> CaseBible:
@@ -185,10 +201,86 @@ def play(
     console.print(f"\n[bold]Turns used: {state['turn_count']}.[/]")
 
 
+def _load_bibles_from_dir(cases_dir: Path) -> list[CaseBible]:
+    if not cases_dir.exists():
+        return []
+    bibles: list[CaseBible] = []
+    for path in sorted(cases_dir.glob("*.json")):
+        bibles.append(CaseBible.model_validate_json(path.read_text(encoding="utf-8")))
+    return bibles
+
+
+_DEFAULT_CASES_DIR = Path("evals/cases")
+
+
 @app.command(name="eval")
-def eval_cmd() -> None:
-    """Run the eval suite. (Stub — implemented in M6.)"""
-    console.print("[yellow]TODO[/] eval suite")
+def eval_cmd(
+    cases_dir: Path = typer.Option(
+        _DEFAULT_CASES_DIR,
+        help="Directory containing case-bible JSON files.",
+    ),
+    consistency: bool = typer.Option(
+        False,
+        "--consistency",
+        help="Additionally run the (slow) consistency eval with an LLM judge.",
+    ),
+) -> None:
+    """Run the eval suite: solvability (always) and optionally consistency."""
+    bibles = _load_bibles_from_dir(cases_dir)
+    if not bibles:
+        console.print(f"[red]No case JSON files found in {cases_dir}.[/]")
+        raise typer.Exit(1)
+
+    settings = Settings()
+    console.print(f"Running solvability eval on [cyan]{len(bibles)}[/] cases...")
+
+    solv = run_solvability_eval(
+        bibles,
+        embeddings_factory=lambda: _default_embeddings_factory(settings),
+        chat_factory=lambda: _default_chat_model_factory(settings),
+    )
+
+    console.print(
+        f"  successes: [bold]{solv.successes}/{solv.cases_run}[/] "
+        f"([bold]{solv.success_rate:.0%}[/])",
+    )
+    if solv.mean_turns_on_success is not None:
+        console.print(f"  mean turns on success: [bold]{solv.mean_turns_on_success:.1f}[/]")
+
+    for r in solv.per_case:
+        mark = "[green]✓[/]" if r.success else "[red]✗[/]"
+        console.print(
+            f"  {mark} seed={r.seed} turns={r.turns} "
+            f"accused={r.accused or '(none)'} actual={r.actual_killer}",
+        )
+
+    if consistency:
+        console.print("\nRunning consistency eval (this calls the LLM many times)...")
+        judge = _default_judge_factory(settings)
+        chat = _default_chat_model_factory(settings)
+
+        total = 0
+        contradicts = 0
+        refused = 0
+        for bible in bibles:
+            embeddings = _default_embeddings_factory(settings)
+            vectorstore = build_index(build_chunks(bible), embeddings)
+            report = run_consistency_eval(bible, vectorstore, chat, judge)
+            total += report.total
+            contradicts += report.contradicts
+            refused += report.refused
+            console.print(
+                f"  seed={bible.seed}: {report.consistent}/{report.total} consistent "
+                f"({report.consistency_rate:.0%}), "
+                f"{report.contradicts} contradicts, {report.refused} refused",
+            )
+
+        consistent_total = total - contradicts - refused
+        rate = consistent_total / total if total else 0.0
+        console.print(
+            f"  [bold]overall: {consistent_total}/{total} consistent ({rate:.0%}), "
+            f"{contradicts} contradicts, {refused} refused[/]",
+        )
 
 
 if __name__ == "__main__":

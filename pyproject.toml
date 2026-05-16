@@ -7,6 +7,10 @@ requires-python = ">=3.13"
 dependencies = [
     "typer>=0.12",
     "rich>=13.7",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "langchain-core>=0.3",
+    "langchain-ollama>=0.2",
 ]
 
 [project.scripts]

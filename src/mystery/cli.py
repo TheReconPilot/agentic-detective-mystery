@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import typer
 from rich.console import Console
@@ -9,12 +9,17 @@ from mystery import __version__
 from mystery.agents.suspect import respond_as_suspect
 from mystery.case_gen.generator import generate_bible
 from mystery.config import Settings
+from mystery.graph.game import build_game_graph
+from mystery.graph.router import ParseError, parse_action
+from mystery.graph.state import GameState, initial_state
 from mystery.models import CaseBible
 from mystery.rag.chunks import build_chunks
-from mystery.rag.indexer import build_index
+from mystery.rag.indexer import build_index, get_or_build_index
 from mystery.rag.retriever import suspect_retriever
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from langchain_core.embeddings import Embeddings
     from langchain_core.language_models import BaseChatModel
 
@@ -120,10 +125,64 @@ def interrogate(
     console.print(f"[bold]{suspect_obj.name}[/]: {reply}")
 
 
+def _index_dir_for(settings: Settings, seed: int) -> Path:
+    return settings.cases_dir / f"{seed}.chroma"
+
+
+def _opening_blurb(bible: CaseBible) -> str:
+    death_loc = next(loc for loc in bible.locations if loc.id == bible.victim.location_of_death_id)
+    return (
+        f"[bold]The case of {bible.victim.name}.[/] "
+        f"The {bible.victim.role.lower()} was found dead in the {death_loc.name}. "
+        f"You arrive to investigate. Type 'help' for commands.\n"
+    )
+
+
+def _play_turn(state: GameState, user_input: str) -> tuple[str, bool]:
+    """Parse one input line. Return (error_message, should_dispatch). For tests."""
+    parsed = parse_action(user_input)
+    if isinstance(parsed, ParseError):
+        return parsed.message, False
+    state["pending_action"] = parsed
+    return "", True
+
+
 @app.command()
-def play() -> None:
-    """Play the most recent case. (Stub — implemented in M5.)"""
-    console.print("[yellow]TODO[/] play loop")
+def play(
+    seed: int = typer.Option(..., help="Seed of the case to play."),
+) -> None:
+    """Play the case end-to-end in a REPL."""
+    settings = Settings()
+    bible = _load_bible(settings, seed)
+    embeddings = _default_embeddings_factory(settings)
+    chat = _default_chat_model_factory(settings)
+    vectorstore = get_or_build_index(bible, embeddings, _index_dir_for(settings, seed))
+    graph = build_game_graph(bible, vectorstore, chat)
+
+    state = initial_state(bible)
+    console.print(_opening_blurb(bible))
+
+    while not state["done"]:
+        console.print(
+            f"[dim]({state['current_location_id']}, turn {state['turn_count']})[/]",
+        )
+        try:
+            raw = input("> ")
+        except EOFError:
+            console.print("\nYou abandon the case.")
+            return
+
+        message, should_dispatch = _play_turn(state, raw.strip())
+        if not should_dispatch:
+            if message:
+                console.print(f"[yellow]{message}[/]")
+            continue
+
+        state = cast("GameState", graph.invoke(state))
+        if state["last_output"]:
+            console.print(state["last_output"])
+
+    console.print(f"\n[bold]Turns used: {state['turn_count']}.[/]")
 
 
 @app.command(name="eval")

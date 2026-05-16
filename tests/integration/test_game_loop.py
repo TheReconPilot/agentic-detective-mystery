@@ -104,3 +104,45 @@ def test_unknown_suspect_accusation_does_not_end_game(valid_bible: CaseBible) ->
     assert state["done"] is False
     assert state["accusation"] is None
     assert "withdrawn" in state["last_output"]
+
+
+def test_full_thorough_investigation(valid_bible: CaseBible) -> None:
+    """A long, methodical game: visit every location, interrogate every suspect,
+    examine everywhere, then accuse. Mirrors the optimal-player eval (M6)."""
+    embeddings = DeterministicFakeEmbedding(size=16)
+    vectorstore = build_index(build_chunks(valid_bible), embeddings)
+    chat = FakeListChatModel(
+        responses=[f"answer-{i}" for i in range(20)],  # plenty of canned replies
+    )
+    graph = build_game_graph(valid_bible, vectorstore, chat)
+    state = initial_state(valid_bible)
+
+    # Examine the starting location.
+    state = _step(graph, state, ExamineAction())
+    # Walk the location graph: library → hallway → garden → hallway → library.
+    state = _step(graph, state, MoveAction(location_id="hallway"))
+    state = _step(graph, state, ExamineAction())
+    state = _step(graph, state, MoveAction(location_id="garden"))
+    state = _step(graph, state, ExamineAction())  # empty room
+    state = _step(graph, state, MoveAction(location_id="hallway"))
+    state = _step(graph, state, MoveAction(location_id="library"))
+
+    # Interrogate every suspect.
+    for suspect in valid_bible.suspects:
+        state = _step(
+            graph,
+            state,
+            InterrogateAction(suspect_id=suspect.id, question="alibi?"),
+        )
+
+    # All revealed clues should be in the notebook.
+    for clue in valid_bible.clues:
+        assert clue.id in state["revealed_clue_ids"]
+    # Every location visited.
+    assert sorted(state["visited_location_ids"]) == sorted(loc.id for loc in valid_bible.locations)
+
+    # Finally accuse — and win.
+    state = _step(graph, state, AccuseAction(suspect_id=valid_bible.killer_id))
+    assert state["done"] is True
+    assert state["accusation"] is not None
+    assert state["accusation"].correct is True

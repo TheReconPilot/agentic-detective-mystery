@@ -144,3 +144,47 @@ def test_accuse_unknown_suspect_is_withdrawn(valid_bible: CaseBible) -> None:
     assert "done" not in update
     assert "accusation" not in update
     assert "withdrawn" in update["last_output"]
+
+
+# ---------- interrogate ----------
+
+
+def test_interrogate_unknown_suspect_returns_helpful_error(valid_bible: CaseBible) -> None:
+    from mystery.tools.interrogate import apply_interrogate
+
+    state = initial_state(valid_bible)
+    # Stub deps — these should never be touched on the error path.
+    update = apply_interrogate(
+        state,
+        valid_bible,
+        vectorstore=None,  # type: ignore[arg-type]
+        chat_model=None,  # type: ignore[arg-type]
+        suspect_id="phantom",
+        question="?",
+    )
+    assert "no suspect 'phantom'" in update["last_output"]
+    assert "turn_count" not in update  # bad input does not cost a turn
+
+
+# ---------- initial_state ----------
+
+
+def test_initial_state_starts_at_crime_scene(valid_bible: CaseBible) -> None:
+    state = initial_state(valid_bible)
+    assert state["current_location_id"] == valid_bible.victim.location_of_death_id
+    assert state["visited_location_ids"] == [valid_bible.victim.location_of_death_id]
+
+
+def test_initial_state_notebook_records_victim(valid_bible: CaseBible) -> None:
+    state = initial_state(valid_bible)
+    assert len(state["notebook"]) == 1
+    assert valid_bible.victim.name in state["notebook"][0]
+
+
+def test_initial_state_is_unaccused_and_unfinished(valid_bible: CaseBible) -> None:
+    state = initial_state(valid_bible)
+    assert state["accusation"] is None
+    assert state["done"] is False
+    assert state["turn_count"] == 0
+    assert state["pending_action"] is None
+    assert state["revealed_clue_ids"] == []

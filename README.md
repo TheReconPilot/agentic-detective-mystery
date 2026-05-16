@@ -4,7 +4,7 @@ A local-first text adventure where you interrogate LLM-driven suspects to solve 
 
 Built on **LangGraph + LangChain + Chroma**, running entirely on **local Ollama models** (3B on a 4 GB laptop GPU, 8B–14B on a 16 GB workstation). Designed as a portfolio project: every claim it makes is backed by a test or an eval that produces a number.
 
-> **Status:** Milestones M1–M5 are complete — schemas, generator, RAG, suspect agent, and the full playable game loop. M6 (evals) is next. See [PLAN.md](PLAN.md) for the full roadmap.
+> **Status:** Milestones M1–M6 are complete — schemas, generator, RAG, suspect agent, the full playable game loop, and the eval harness (solvability + consistency). M7 (polish & v0.1.0) remains. See [PLAN.md](PLAN.md) for the full roadmap.
 
 ## Why this design
 
@@ -38,7 +38,18 @@ uv run mystery play --seed 42
 
 In the REPL, type `help` to see the command list. The first run for a given seed embeds the case bible into a persistent Chroma index at `cases/{seed}.chroma`; subsequent plays load it instantly.
 
-The eval suite (`mystery eval`) lands in M6.
+### Running the eval suite
+
+Drop generated case bibles into `evals/cases/` (e.g. `for s in $(seq 1 20); do uv run mystery new --seed $s; cp cases/$s.json evals/cases/; done`), then:
+
+```bash
+uv run mystery eval                              # solvability: does an optimal player win?
+uv run mystery eval --consistency                # also: do suspects contradict the bible?
+```
+
+**Solvability** uses an omniscient optimal player ([src/mystery/evals/optimal_player.py](src/mystery/evals/optimal_player.py)) that DFS-walks every location, examines each, then accuses the bible's killer. A failure means the generator produced an unsolvable case.
+
+**Consistency** interrogates every suspect with a standard question set and hands each response to an LLM judge that sees the full bible. The judge classifies as `consistent`, `contradicts`, or `refused`. Aggregate "contradicts" rate is the headline metric this project exists to drive toward zero.
 
 ### Switching hardware tiers
 

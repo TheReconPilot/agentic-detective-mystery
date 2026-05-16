@@ -8,7 +8,7 @@ A local-first agentic detective mystery game. Player interrogates LLM-driven sus
 
 Implementation roadmap, domain model, eval strategy, and milestones live in [PLAN.md](PLAN.md) — read it before doing non-trivial work.
 
-**Progress so far:** M1–M5 are all done — skeleton, case-bible generator, character-scoped RAG, suspect agent, and the full playable game loop with LangGraph dispatcher + persistent Chroma. M6 (evals: optimal-player, consistency judge, solvability harness) is next.
+**Progress so far:** M1–M6 are all done — skeleton, case-bible generator, character-scoped RAG, suspect agent, full playable game loop, and the eval harness (optimal player, consistency judge, solvability aggregator). M7 (polish: architecture diagram, demo recording, badges, v0.1.0 tag) is what's left.
 
 ## Stack
 
@@ -35,7 +35,8 @@ uv sync                          # install runtime + dev deps from pyproject.tom
 uv run mystery new --seed 42                                       # generate cases/42.json
 uv run mystery interrogate --seed 42 --suspect butler "Where were you at nine?"
 uv run mystery play --seed 42    # play the full REPL
-uv run mystery eval              # M6
+uv run mystery eval --cases-dir evals/cases                # solvability across the cases dir
+uv run mystery eval --cases-dir evals/cases --consistency  # adds the LLM-judge pass (slow)
 
 # Quality gates (run before committing)
 uv run ruff format .
@@ -71,6 +72,10 @@ src/mystery/
     game.py        ← build_game_graph(): LangGraph dispatcher, one node per Action kind
   tools/           ← apply_move / apply_examine / apply_notebook / apply_accuse / apply_interrogate
                      pure functions returning state-update dicts (no LangGraph dep)
+  evals/
+    optimal_player.py  ← DFS-based player that always wins; produces SolvabilityReport
+    solvability.py     ← aggregator across many bibles
+    consistency.py     ← ConsistencyJudge Protocol + LLMConsistencyJudge + run_consistency_eval
   cli.py           ← typer entry point (new, interrogate, play, eval, version)
 tests/
   unit/            ← pure functions, schema validation, CLI with stubbed factories

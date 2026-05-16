@@ -8,7 +8,7 @@ A local-first agentic detective mystery game. Player interrogates LLM-driven sus
 
 Implementation roadmap, domain model, eval strategy, and milestones live in [PLAN.md](PLAN.md) — read it before doing non-trivial work.
 
-**Progress so far:** M1 skeleton, M2 case-bible generator, M3 character-scoped RAG, and M4 suspect agent are all done. M5 (game loop) is next.
+**Progress so far:** M1–M5 are all done — skeleton, case-bible generator, character-scoped RAG, suspect agent, and the full playable game loop with LangGraph dispatcher + persistent Chroma. M6 (evals: optimal-player, consistency judge, solvability harness) is next.
 
 ## Stack
 
@@ -34,7 +34,7 @@ uv sync                          # install runtime + dev deps from pyproject.tom
 # Run
 uv run mystery new --seed 42                                       # generate cases/42.json
 uv run mystery interrogate --seed 42 --suspect butler "Where were you at nine?"
-uv run mystery play              # M5
+uv run mystery play --seed 42    # play the full REPL
 uv run mystery eval              # M6
 
 # Quality gates (run before committing)
@@ -61,23 +61,30 @@ src/mystery/
     llm.py         ← OllamaBibleLLM (ChatOllama.with_structured_output(CaseBible))
   rag/
     chunks.py      ← bible → typed Chunks with scope/character_id metadata
-    indexer.py     ← chunks → Chroma store (in-memory or persistent)
+    indexer.py     ← chunks → Chroma store; get_or_build_index() for persistence
     retriever.py   ← suspect_retriever() with character-scope metadata filter
   agents/
     suspect.py     ← respond_as_suspect: retrieve → render persona prompt → chat → string
+  graph/
+    state.py       ← GameState TypedDict, Action discriminated union, initial_state()
+    router.py      ← parse raw input → typed Action | ParseError
+    game.py        ← build_game_graph(): LangGraph dispatcher, one node per Action kind
+  tools/           ← apply_move / apply_examine / apply_notebook / apply_accuse / apply_interrogate
+                     pure functions returning state-update dicts (no LangGraph dep)
   cli.py           ← typer entry point (new, interrogate, play, eval, version)
 tests/
   unit/            ← pure functions, schema validation, CLI with stubbed factories
   integration/     ← real Chroma + DeterministicFakeEmbedding + FakeListChatModel
 ```
 
-Five ideas to keep in mind when editing:
+Six ideas to keep in mind when editing:
 
 1. **The case bible is canon.** Suspects can lie, but only according to their `deception_policy`. They cannot invent facts. If a suspect response could contradict the bible, it's a bug — covered by the consistency eval (M6).
 2. **RAG scope is per-character.** `suspect_retriever` filters on `{"$or": [{"character_id": id}, {"scope": "world"}]}`. Tests in [tests/integration/test_rag_scope_isolation.py](tests/integration/test_rag_scope_isolation.py) prove that A cannot retrieve B's private chunks. Don't relax those tests.
 3. **Three things are deliberately not in RAG:** the `canonical_timeline` (author's omniscient view), `deception_policy` (lives in the suspect prompt, not retrieval), and `clues` (the `examine` tool reads them from the bible directly in M5). [tests/unit/test_chunks.py](tests/unit/test_chunks.py) guards these exclusions.
 4. **External services are injected via module-level factories.** `cli._default_llm_factory`, `cli._default_chat_model_factory`, `cli._default_embeddings_factory` — tests `monkeypatch.setattr` them to inject stubs. Keep this pattern when adding new services; don't import langchain at the top of `cli.py` for things only used inside a single command.
 5. **Real-LLM evals are pytest-marked `eval`** and skipped by default. Default `pytest` must stay fast and offline. Integration tests use `DeterministicFakeEmbedding` + `FakeListChatModel` from `langchain_core` — no network.
+6. **Game tools are pure functions, not LangGraph nodes.** Each `apply_*` in [src/mystery/tools/](src/mystery/tools/) takes state + bible (+ optional deps) and returns a state-update dict. LangGraph's contribution is only the dispatch topology in [graph/game.py](src/mystery/graph/game.py). If you need to test new game logic, do it against the `apply_*` function directly — don't reach for the graph unless you're testing routing.
 
 ## Conventions
 

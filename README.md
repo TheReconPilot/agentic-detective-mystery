@@ -4,7 +4,7 @@ A local-first text adventure where you interrogate LLM-driven suspects to solve 
 
 Built on **LangGraph + LangChain + Chroma**, running entirely on **local Ollama models** (3B on a 4 GB laptop GPU, 8B–14B on a 16 GB workstation). Designed as a portfolio project: every claim it makes is backed by a test or an eval that produces a number.
 
-> **Status:** Milestones M1–M4 are complete (schemas, generator, RAG, suspect agent). M5 (game loop) and M6 (evals) are in progress. See [PLAN.md](PLAN.md) for the full roadmap.
+> **Status:** Milestones M1–M5 are complete — schemas, generator, RAG, suspect agent, and the full playable game loop. M6 (evals) is next. See [PLAN.md](PLAN.md) for the full roadmap.
 
 ## Why this design
 
@@ -31,9 +31,14 @@ uv run mystery new --seed 42
 
 # Interrogate one suspect (smoke surface for the agent)
 uv run mystery interrogate --seed 42 --suspect butler "Where were you at nine o'clock?"
+
+# Play the full game (REPL)
+uv run mystery play --seed 42
 ```
 
-The full game loop (`mystery play`) and the eval suite (`mystery eval`) land in M5 and M6.
+In the REPL, type `help` to see the command list. The first run for a given seed embeds the case bible into a persistent Chroma index at `cases/{seed}.chroma`; subsequent plays load it instantly.
+
+The eval suite (`mystery eval`) lands in M6.
 
 ### Switching hardware tiers
 

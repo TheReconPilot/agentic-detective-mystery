@@ -12,6 +12,7 @@ dependencies = [
     "langchain-core>=0.3",
     "langchain-ollama>=0.2",
     "langchain-chroma>=0.2",
+    "langgraph>=0.2",
 ]
 
 [project.scripts]

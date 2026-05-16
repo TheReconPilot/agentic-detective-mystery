@@ -1,0 +1,79 @@
+"""Game state and player-action types.
+
+``GameState`` is a TypedDict because LangGraph merges partial dict updates
+returned from each node. Action types are a discriminated Pydantic union so
+the router can return one typed object instead of a tagged tuple.
+"""
+
+from __future__ import annotations
+
+from typing import Annotated, Literal, TypedDict
+
+from pydantic import BaseModel, ConfigDict, Field
+
+_StrictAction = ConfigDict(extra="forbid", frozen=True)
+
+
+class MoveAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["move"] = "move"
+    location_id: str
+
+
+class InterrogateAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["interrogate"] = "interrogate"
+    suspect_id: str
+    question: str
+
+
+class ExamineAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["examine"] = "examine"
+
+
+class NotebookAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["notebook"] = "notebook"
+
+
+class AccuseAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["accuse"] = "accuse"
+    suspect_id: str
+
+
+class HelpAction(BaseModel):
+    model_config = _StrictAction
+    kind: Literal["help"] = "help"
+
+
+Action = Annotated[
+    MoveAction | InterrogateAction | ExamineAction | NotebookAction | AccuseAction | HelpAction,
+    Field(discriminator="kind"),
+]
+
+
+class AccusationResult(BaseModel):
+    """Outcome of an accuse action. Frozen — the verdict cannot be revised."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    accused_id: str
+    correct: bool
+    actual_killer_id: str
+
+
+class GameState(TypedDict):
+    """All session-level state. Bible/vectorstore/chat live outside (immutable deps)."""
+
+    current_location_id: str
+    revealed_clue_ids: list[str]
+    visited_location_ids: list[str]
+    notebook: list[str]
+    turn_count: int
+    accusation: AccusationResult | None
+    done: bool
+
+    pending_action: Action | None
+    last_output: str

@@ -37,6 +37,7 @@ uv run mystery interrogate --seed 42 --suspect butler "Where were you at nine?"
 uv run mystery play --seed 42    # play the full REPL
 uv run mystery eval --cases-dir evals/cases                # solvability across the cases dir
 uv run mystery eval --cases-dir evals/cases --consistency  # adds the LLM-judge pass (slow)
+uv run mystery playtest --seed 42 --transcript             # LLM-vs-LLM blind playtest
 
 # Quality gates (run before committing)
 uv run ruff format .
@@ -76,7 +77,8 @@ src/mystery/
     optimal_player.py  ← DFS-based player that always wins; produces SolvabilityReport
     solvability.py     ← aggregator across many bibles
     consistency.py     ← ConsistencyJudge Protocol + LLMConsistencyJudge + run_consistency_eval
-  cli.py           ← typer entry point (new, interrogate, play, eval, version)
+    llm_player.py      ← blind LLM detective: render observation, parse one command, loop
+  cli.py           ← typer entry point (new, interrogate, play, eval, playtest, version)
 tests/
   unit/            ← pure functions, schema validation, CLI with stubbed factories
   integration/     ← real Chroma + DeterministicFakeEmbedding + FakeListChatModel

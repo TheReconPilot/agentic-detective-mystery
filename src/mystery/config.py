@@ -21,4 +21,4 @@ class Settings(BaseSettings):
     embed_model: str = "nomic-embed-text"
     ollama_base_url: str | None = None
     cases_dir: Path = Field(default=Path("cases"))
-    max_gen_attempts: int = 3
+    max_gen_attempts: int = 5

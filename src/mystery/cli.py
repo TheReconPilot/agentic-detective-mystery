@@ -11,6 +11,7 @@ from mystery.agents.suspect import respond_as_suspect
 from mystery.case_gen.generator import generate_bible
 from mystery.config import Settings
 from mystery.evals.consistency import run_consistency_eval
+from mystery.evals.llm_player import play_with_llm
 from mystery.evals.solvability import run_solvability_eval
 from mystery.graph.game import build_game_graph
 from mystery.graph.router import ParseError, parse_action
@@ -281,6 +282,47 @@ def eval_cmd(
             f"  [bold]overall: {consistent_total}/{total} consistent ({rate:.0%}), "
             f"{contradicts} contradicts, {refused} refused[/]",
         )
+
+
+@app.command()
+def playtest(
+    seed: int = typer.Option(..., help="Seed of the case to playtest."),
+    max_turns: int = typer.Option(60, help="Hard cap on detective turns."),
+    transcript: bool = typer.Option(
+        False,
+        "--transcript",
+        help="Print the per-turn transcript after the run.",
+    ),
+) -> None:
+    """LLM-vs-LLM playtest: a blind detective LLM plays the case end-to-end."""
+    settings = Settings()
+    bible = _load_bible(settings, seed)
+    embeddings = _default_embeddings_factory(settings)
+    suspect_chat = _default_chat_model_factory(settings)
+    detective_chat = _default_chat_model_factory(settings)
+    vectorstore = get_or_build_index(bible, embeddings, _index_dir_for(settings, seed))
+
+    console.print(f"playtesting [cyan]seed={seed}[/] for up to {max_turns} turns...")
+    report = play_with_llm(
+        bible,
+        vectorstore,
+        suspect_chat,
+        detective_chat,
+        max_turns=max_turns,
+    )
+    mark = "[green]✓[/]" if report.success else "[red]✗[/]"
+    console.print(
+        f"  {mark} accused={report.accused or '(none)'} actual={report.actual_killer} "
+        f"turns={report.turns_used} parse_errors={report.parse_errors} "
+        f"repeats={report.repeated_actions}",
+    )
+    if transcript:
+        for step in report.steps:
+            console.print(
+                f"  t{step.turn} [bold]{step.parsed_kind}[/] {step.raw_command!r}",
+            )
+            if step.output:
+                console.print(f"    [dim]{step.output.splitlines()[0][:140]}[/]")
 
 
 if __name__ == "__main__":

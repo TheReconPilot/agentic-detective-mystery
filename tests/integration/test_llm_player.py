@@ -68,12 +68,16 @@ def test_llm_player_solves_case_with_scripted_commands(valid_bible: CaseBible) -
 
 
 def test_llm_player_records_parse_errors_without_crashing(valid_bible: CaseBible) -> None:
-    """A detective that emits garbage should rack up parse_errors, not crash."""
+    """A detective that emits garbage should record events, not crash.
+
+    With the router's new tolerance these verbs now parse, so we send genuine
+    unknown commands to exercise the parse-error path.
+    """
     embeddings = DeterministicFakeEmbedding(size=16)
     vectorstore = build_index(build_chunks(valid_bible), embeddings)
     suspect_chat = FakeListChatModel(responses=["unused"])
     detective_chat = FakeListChatModel(
-        responses=["investigate the library", "search around", "question butler"] * 5,
+        responses=["frobnicate the room", "nonsense here", "blarg butler"] * 5,
     )
 
     report = play_with_llm(
@@ -84,5 +88,35 @@ def test_llm_player_records_parse_errors_without_crashing(valid_bible: CaseBible
         max_turns=10,
     )
     assert report.parse_errors >= 1
-    # All three are unknown verbs -> the loop aborts on consecutive_parse_errors >= 5.
     assert report.success is False
+
+
+def test_llm_player_aborts_on_consecutive_repeat_loop(valid_bible: CaseBible) -> None:
+    """A stuck detective that emits the same command repeatedly is force-aborted."""
+    embeddings = DeterministicFakeEmbedding(size=16)
+    vectorstore = build_index(build_chunks(valid_bible), embeddings)
+    suspect_chat = FakeListChatModel(responses=["unused"])
+    detective_chat = FakeListChatModel(responses=["examine"] * 20)
+
+    report = play_with_llm(
+        valid_bible,
+        vectorstore,
+        suspect_chat,
+        detective_chat,
+        max_turns=50,
+        max_consecutive_repeats=3,
+    )
+    assert report.success is False
+    # Aborted well before max_turns.
+    assert report.turns_used < 50
+    assert any(step.parsed_kind == "aborted_loop" for step in report.steps)
+
+
+def test_observation_lists_unvisited_rooms(valid_bible: CaseBible) -> None:
+    """Surfacing UNVISITED ROOMS is what unsticks a detective stuck on examine."""
+    state = initial_state(valid_bible)
+    obs = render_observation(state, valid_bible)
+    assert "UNVISITED ROOMS" in obs
+    # Library is the starting room; the other two should be flagged unvisited.
+    assert "hallway" in obs.split("UNVISITED ROOMS")[1]
+    assert "garden" in obs.split("UNVISITED ROOMS")[1]

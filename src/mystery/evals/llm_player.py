@@ -46,13 +46,22 @@ Available commands (you MUST use these exact verbs):
   notes                         show your notebook (free action)
   accuse <suspect_id>           end the game by naming the killer
 
-Strategy:
-- Examine every reachable location to discover clues.
-- Interrogate every suspect about their whereabouts, the victim, each other.
-- When you are confident, accuse exactly one suspect. The game then ends.
-- Use ONLY the ids shown in the observation (snake_case). Do not invent ids.
+Strategy (follow in order):
+1. Visit EVERY room in UNVISITED ROOMS and `examine` each one. Move first,
+   then examine.
+2. Once all clues are found, interrogate each suspect — ask about the
+   victim, their whereabouts, and the clues you have collected.
+3. When the evidence points clearly to one suspect, `accuse <suspect_id>`.
+   The game ends instantly on accusation, right or wrong, so don't guess.
 
-Output format: one command line. Nothing else.
+Hard rules:
+- NEVER repeat the same command twice in a row. If LAST RESULT says you have
+  already catalogued every clue here, you must MOVE somewhere else or `ask`
+  a suspect — do not `examine` again.
+- Use ONLY the ids shown in the observation (snake_case). Do not invent ids.
+- Write questions as natural English sentences, not snake_case_strings.
+
+Output format: ONE command line. Nothing else.
 """
 
 
@@ -97,14 +106,23 @@ def render_observation(state: GameState, bible: CaseBible) -> str:
     legitimately know (current room, exits, suspect roster, revealed clues,
     last tool output). It does NOT leak the killer, deception policies,
     motives, alibi truth values, or the canonical timeline.
+
+    Surfaces *which* rooms have not yet been visited so a confused detective
+    is nudged to explore — early playtests showed the LLM happily looping on
+    `examine` in a fully-searched room without trying other locations.
     """
     here = next(loc for loc in bible.locations if loc.id == state["current_location_id"])
     exits = ", ".join(here.connected_location_ids) or "(none)"
     suspect_ids = ", ".join(s.id for s in bible.suspects)
     revealed = ", ".join(state["revealed_clue_ids"]) or "(none yet)"
-    notes_tail = state["notebook"][-6:] if state["notebook"] else []
-    notes_block = "\n".join(f"  - {line}" for line in notes_tail) or "  (empty)"
+    notes_block = (
+        "\n".join(f"  - {line}" for line in state["notebook"]) if state["notebook"] else "  (empty)"
+    )
     last = state["last_output"] or "(none)"
+    unvisited = sorted(
+        {loc.id for loc in bible.locations} - set(state["visited_location_ids"]),
+    )
+    unvisited_str = ", ".join(unvisited) or "(none — you've been everywhere)"
 
     return (
         f"VICTIM: {bible.victim.name} ({bible.victim.role}), "
@@ -113,7 +131,8 @@ def render_observation(state: GameState, bible: CaseBible) -> str:
         f"EXITS: {exits}\n"
         f"SUSPECTS (use these ids): {suspect_ids}\n"
         f"CLUES FOUND: {revealed}\n"
-        f"NOTEBOOK (last entries):\n{notes_block}\n"
+        f"UNVISITED ROOMS: {unvisited_str}\n"
+        f"NOTEBOOK:\n{notes_block}\n"
         f"LAST RESULT: {last}\n"
         f"TURN: {state['turn_count']}\n"
         f"\nWhat is your next command?"
@@ -143,14 +162,23 @@ def play_with_llm(
     detective_chat_model: BaseChatModel,
     *,
     max_turns: int = 60,
+    max_consecutive_repeats: int = 4,
 ) -> PlaytestReport:
-    """Run a full LLM-vs-LLM playtest. Returns a structured report."""
+    """Run a full LLM-vs-LLM playtest. Returns a structured report.
+
+    ``max_consecutive_repeats`` is a guardrail: the LLM detective will
+    occasionally lock into a loop (e.g. re-examining a searched room) and
+    consume every remaining turn. Once that many *consecutive identical*
+    commands have been issued, abort and mark the case unsolved — that's a
+    real failure to report, not an excuse to keep spending tokens.
+    """
     graph = build_game_graph(bible, vectorstore, suspect_chat_model)
     state = initial_state(bible)
     steps: list[PlaytestStep] = []
     parse_errors = 0
     repeated_actions = 0
     last_raw: str | None = None
+    consecutive_repeats = 0
     consecutive_parse_errors = 0
 
     while not state["done"] and state["turn_count"] < max_turns:
@@ -159,7 +187,22 @@ def play_with_llm(
 
         if raw == last_raw:
             repeated_actions += 1
+            consecutive_repeats += 1
+        else:
+            consecutive_repeats = 0
         last_raw = raw
+        if consecutive_repeats >= max_consecutive_repeats:
+            # Aborted loop: record it so the report is honest about why we stopped.
+            steps.append(
+                PlaytestStep(
+                    turn=state["turn_count"],
+                    observation=observation,
+                    raw_command=raw,
+                    parsed_kind="aborted_loop",
+                    output=f"detective issued {raw!r} {consecutive_repeats + 1}x — abort",
+                ),
+            )
+            break
 
         parsed: Action | ParseError = parse_action(raw)
         if isinstance(parsed, ParseError):

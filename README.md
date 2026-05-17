@@ -185,4 +185,4 @@ See [CLAUDE.md](CLAUDE.md) for the invariants the codebase enforces and [PLAN.md
 
 ## License
 
-TBD.
+Apache License 2.0 — see [LICENSE](LICENSE).

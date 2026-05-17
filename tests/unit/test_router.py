@@ -10,6 +10,7 @@ from mystery.graph.state import (
     InterrogateAction,
     MoveAction,
     NotebookAction,
+    ShowAction,
 )
 
 
@@ -23,12 +24,28 @@ from mystery.graph.state import (
         ("notes", NotebookAction()),
         ("n", NotebookAction()),
         ("accuse butler", AccuseAction(suspect_id="butler")),
+        ("show butler muddy_boots", ShowAction(suspect_id="butler", clue_id="muddy_boots")),
+        ("present butler muddy_boots", ShowAction(suspect_id="butler", clue_id="muddy_boots")),
+        ("confront butler muddy_boots", ShowAction(suspect_id="butler", clue_id="muddy_boots")),
         ("help", HelpAction()),
         ("?", HelpAction()),
     ],
 )
 def test_parses_simple_commands(text: str, expected: object) -> None:
     assert parse_action(text) == expected
+
+
+def test_show_requires_both_suspect_and_clue() -> None:
+    """Missing the clue id should produce a usage error, not a partial Action."""
+    result = parse_action("show butler")
+    assert isinstance(result, ParseError)
+    assert "show <suspect> <clue>" in result.message
+
+
+def test_show_tolerates_filler_word_between_args() -> None:
+    """LLMs love to emit 'show butler the muddy_boots'."""
+    result = parse_action("show butler the muddy_boots")
+    assert result == ShowAction(suspect_id="butler", clue_id="muddy_boots")
 
 
 def test_parses_interrogate_with_multiword_question() -> None:

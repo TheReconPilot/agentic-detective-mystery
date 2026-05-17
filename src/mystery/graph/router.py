@@ -147,10 +147,15 @@ def parse_action(user_input: str) -> Action | ParseError:
 
     if verb in _SHOW_VERBS:
         all_args = _strip_leading_filler(" ".join(rest).split())
-        if len(all_args) < 2:
+        if not all_args:
             return ParseError("Usage: show <suspect> <clue>")
         suspect_id = _clean_arg(all_args[0])
-        clue_id = _clean_arg(all_args[1])
+        # Strip filler again between the two args so "show butler the boots"
+        # collapses to (butler, boots) — LLMs often slot articles in there.
+        remaining = _strip_leading_filler(all_args[1:])
+        if not remaining:
+            return ParseError("Usage: show <suspect> <clue>")
+        clue_id = _clean_arg(remaining[0])
         if not suspect_id or not clue_id:
             return ParseError("Usage: show <suspect> <clue>")
         return ShowAction(suspect_id=suspect_id, clue_id=clue_id)

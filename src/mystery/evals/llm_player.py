@@ -159,6 +159,17 @@ def _ask_detective(chat_model: BaseChatModel, observation: str) -> str:
     return raw
 
 
+def _progress_score(state: GameState) -> int:
+    """A monotonic 'detective is making progress' counter.
+
+    Increases when the player examines a new room or reveals a new clue.
+    Used as the no-progress abort signal: a small LLM detective will happily
+    shuttle between two rooms without ever examining, and consecutive-repeat
+    detection misses alternating cycles.
+    """
+    return len(state["examined_location_ids"]) + len(state["revealed_clue_ids"])
+
+
 def play_with_llm(
     bible: CaseBible,
     vectorstore: Chroma,
@@ -167,6 +178,7 @@ def play_with_llm(
     *,
     max_turns: int = 60,
     max_consecutive_repeats: int = 4,
+    no_progress_window: int = 12,
 ) -> PlaytestReport:
     """Run a full LLM-vs-LLM playtest. Returns a structured report.
 
@@ -175,6 +187,12 @@ def play_with_llm(
     consume every remaining turn. Once that many *consecutive identical*
     commands have been issued, abort and mark the case unsolved — that's a
     real failure to report, not an excuse to keep spending tokens.
+
+    ``no_progress_window`` is a second guardrail for alternating-cycle loops
+    (e.g. move A → move B → move A → …) that consecutive-repeat detection
+    misses. If the progress score does not increase for that many turns,
+    abort. Set high enough that legitimate "all rooms searched, now I'm
+    interrogating" phases can run.
     """
     graph = build_game_graph(bible, vectorstore, suspect_chat_model)
     state = initial_state(bible)
@@ -184,6 +202,8 @@ def play_with_llm(
     last_raw: str | None = None
     consecutive_repeats = 0
     consecutive_parse_errors = 0
+    best_progress = _progress_score(state)
+    turns_since_progress = 0
 
     while not state["done"] and state["turn_count"] < max_turns:
         observation = render_observation(state, bible, max_turns=max_turns)
@@ -242,6 +262,27 @@ def play_with_llm(
                 output=state["last_output"],
             ),
         )
+
+        progress = _progress_score(state)
+        if progress > best_progress:
+            best_progress = progress
+            turns_since_progress = 0
+        else:
+            turns_since_progress += 1
+        if turns_since_progress >= no_progress_window and not state["done"]:
+            steps.append(
+                PlaytestStep(
+                    turn=state["turn_count"],
+                    observation="",
+                    raw_command="",
+                    parsed_kind="aborted_no_progress",
+                    output=(
+                        f"no new clues or examined rooms for {turns_since_progress} turns "
+                        f"— aborting"
+                    ),
+                ),
+            )
+            break
 
     accusation = state["accusation"]
     return PlaytestReport(

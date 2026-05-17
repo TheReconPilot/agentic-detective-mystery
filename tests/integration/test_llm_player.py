@@ -91,6 +91,27 @@ def test_llm_player_records_parse_errors_without_crashing(valid_bible: CaseBible
     assert report.success is False
 
 
+def test_llm_player_aborts_on_no_progress_alternation(valid_bible: CaseBible) -> None:
+    """Alternating move-A / move-B forever counts as no-progress and aborts."""
+    embeddings = DeterministicFakeEmbedding(size=16)
+    vectorstore = build_index(build_chunks(valid_bible), embeddings)
+    suspect_chat = FakeListChatModel(responses=["unused"])
+    # library <-> hallway forever, never examining.
+    detective_chat = FakeListChatModel(responses=(["move hallway", "move library"] * 30))
+
+    report = play_with_llm(
+        valid_bible,
+        vectorstore,
+        suspect_chat,
+        detective_chat,
+        max_turns=100,
+        no_progress_window=8,
+    )
+    assert report.success is False
+    assert report.turns_used < 100
+    assert any(step.parsed_kind == "aborted_no_progress" for step in report.steps)
+
+
 def test_llm_player_aborts_on_consecutive_repeat_loop(valid_bible: CaseBible) -> None:
     """A stuck detective that emits the same command repeatedly is force-aborted."""
     embeddings = DeterministicFakeEmbedding(size=16)

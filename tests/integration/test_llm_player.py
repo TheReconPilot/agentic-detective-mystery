@@ -166,3 +166,41 @@ def test_observation_next_hop_resolves_non_adjacent_targets(valid_bible: CaseBib
     # The fixture map is library <-> hallway <-> garden. To reach garden
     # from library, the first step must be hallway.
     assert "to reach garden, first `move hallway`" in hop_block
+
+
+def test_observation_nudges_to_show_after_consecutive_asks(valid_bible: CaseBible) -> None:
+    """The autoregressive 14b detective ignores soft 'stop asking' rules.
+    Once 3+ asks have happened back-to-back AND clues exist, the observation
+    must include a loud, contextual STOP banner pushing toward `show`/`accuse`."""
+    state = initial_state(valid_bible)
+    # Simulate having found a clue and asked 3x in a row.
+    state["revealed_clue_ids"] = ["torn_letter"]
+    obs = render_observation(
+        state,
+        valid_bible,
+        recent_action_kinds=["interrogate", "interrogate", "interrogate"],
+    )
+    assert "STOP" in obs
+    assert "show <suspect> <clue>" in obs
+
+
+def test_observation_no_nudge_before_threshold(valid_bible: CaseBible) -> None:
+    state = initial_state(valid_bible)
+    state["revealed_clue_ids"] = ["torn_letter"]
+    obs = render_observation(
+        state,
+        valid_bible,
+        recent_action_kinds=["interrogate", "interrogate"],
+    )
+    assert "STOP: you have issued" not in obs
+
+
+def test_observation_no_nudge_without_clues(valid_bible: CaseBible) -> None:
+    """Pushing toward `show` is useless if the player has no clues yet."""
+    state = initial_state(valid_bible)
+    obs = render_observation(
+        state,
+        valid_bible,
+        recent_action_kinds=["interrogate"] * 5,
+    )
+    assert "STOP: you have issued" not in obs

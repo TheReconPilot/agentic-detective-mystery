@@ -157,7 +157,24 @@ def _next_hop_toward(
     return out
 
 
-def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | None = None) -> str:
+def _recent_ask_streak(recent_kinds: list[str]) -> int:
+    """Count trailing consecutive `interrogate` kinds in the action history."""
+    streak = 0
+    for kind in reversed(recent_kinds):
+        if kind == "interrogate":
+            streak += 1
+        else:
+            break
+    return streak
+
+
+def render_observation(
+    state: GameState,
+    bible: CaseBible,
+    *,
+    max_turns: int | None = None,
+    recent_action_kinds: list[str] | None = None,
+) -> str:
     """Render the textual state the LLM detective sees each turn.
 
     Deliberately bible-redacted: it shows what a player at this state would
@@ -197,6 +214,23 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
     else:
         next_hop_block = ""
 
+    # Pattern-break nudge. The 14b detective will happily ask the same
+    # suspect 12 questions in a row even with a "stop asking" rule in the
+    # system prompt — autoregressive momentum drowns the constraint. The
+    # observation-level call-out runs much closer to the model's next-token
+    # decision and seems to be what actually shifts the action choice.
+    ask_streak = _recent_ask_streak(recent_action_kinds or [])
+    if ask_streak >= 3 and state["revealed_clue_ids"]:
+        nudge_block = (
+            f"\n!!! STOP: you have issued {ask_streak} consecutive `ask` commands "
+            f"without making progress. Do NOT issue another `ask`. Your next "
+            f"command MUST be either `show <suspect> <clue>` (confront someone "
+            f"with one of your {len(state['revealed_clue_ids'])} clues) or "
+            f"`accuse <suspect>` (commit to the killer).\n"
+        )
+    else:
+        nudge_block = ""
+
     return (
         f"VICTIM: {bible.victim.name} ({bible.victim.role}), "
         f"found in {bible.victim.location_of_death_id} at t={bible.victim.time_of_death}.\n"
@@ -212,6 +246,7 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
         f"LAST RESULT: {last}\n"
         f"TURN: {state['turn_count']}"
         f"{f' of {max_turns} (commit soon!)' if max_turns else ''}\n"
+        f"{nudge_block}"
         f"\nWhat is your next command?"
     )
 
@@ -278,9 +313,15 @@ def play_with_llm(
     consecutive_parse_errors = 0
     best_progress = _progress_score(state)
     turns_since_progress = 0
+    recent_action_kinds: list[str] = []
 
     while not state["done"] and state["turn_count"] < max_turns:
-        observation = render_observation(state, bible, max_turns=max_turns)
+        observation = render_observation(
+            state,
+            bible,
+            max_turns=max_turns,
+            recent_action_kinds=recent_action_kinds[-6:],
+        )
         raw = _ask_detective(detective_chat_model, observation)
 
         if raw == last_raw:
@@ -327,6 +368,7 @@ def play_with_llm(
         consecutive_parse_errors = 0
         state["pending_action"] = parsed
         state = cast("GameState", graph.invoke(state))
+        recent_action_kinds.append(parsed.kind)
         steps.append(
             PlaytestStep(
                 turn=state["turn_count"],

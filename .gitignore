@@ -19,5 +19,9 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
-# Generated cases (regenerable from seeds)
-cases/
+# Per-developer playthrough cases (default MYSTERY_CASES_DIR). Anchored to the
+# repo root so it does NOT swallow evals/cases/, which holds the eval fixtures.
+/cases/
+
+# Chroma indexes are derived from bibles and should not be committed.
+*.chroma/

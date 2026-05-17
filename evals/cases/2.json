@@ -1,0 +1,237 @@
+{
+  "seed": 2,
+  "victim": {
+    "name": "Lady Eleanor",
+    "role": "Hostess",
+    "location_of_death_id": "library",
+    "time_of_death": 180
+  },
+  "suspects": [
+    {
+      "id": "mr_brown",
+      "name": "Mr. Brown",
+      "archetype": "Butler",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            160,
+            200
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "library_was_entered_by_lockpick"
+      ],
+      "deception_policy": "Mr. Brown will lie about his whereabouts during the time of death."
+    },
+    {
+      "id": "miss_white",
+      "name": "Miss White",
+      "archetype": "Nurse",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "bedroom",
+          "time_window": [
+            170,
+            220
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Miss White will truthfully recount her actions."
+    },
+    {
+      "id": "dr_green",
+      "name": "Dr. Green",
+      "archetype": "Doctor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            150,
+            240
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Dr. Green will truthfully recount his actions."
+    },
+    {
+      "id": "mrs_peacock",
+      "name": "Mrs. Peacock",
+      "archetype": "Socialite",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "ballroom",
+          "time_window": [
+            175,
+            200
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Mrs. Peacock will truthfully recount her actions."
+    },
+    {
+      "id": "prof_plum",
+      "name": "Professor Plum",
+      "archetype": "Professor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "study",
+          "time_window": [
+            150,
+            240
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Professor Plum will truthfully recount his actions."
+    }
+  ],
+  "locations": [
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "The library where the murder occurred.",
+      "connected_location_ids": [
+        "kitchen",
+        "study"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "Where Mr. Brown was supposedly found but not actually present.",
+      "connected_location_ids": [
+        "library",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "description": "Where Miss White was resting during the time of death.",
+      "connected_location_ids": []
+    },
+    {
+      "id": "garden",
+      "name": "Garden",
+      "description": "Dr. Green's alibi location, where he claims to have been during the murder.",
+      "connected_location_ids": [
+        "ballroom"
+      ]
+    },
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "Professor Plum was in his study as an alibi.",
+      "connected_location_ids": [
+        "library",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "dining_room",
+      "name": "Dining Room",
+      "description": "A connecting room between several locations.",
+      "connected_location_ids": [
+        "kitchen",
+        "study"
+      ]
+    },
+    {
+      "id": "ballroom",
+      "name": "Ballroom",
+      "description": "Mrs. Peacock was in the ballroom during the murder time.",
+      "connected_location_ids": [
+        "garden"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "lockpick",
+      "location_id": "library",
+      "description": "A lockpick found near the body, suggesting forced entry.",
+      "incriminates_suspect_ids": [
+        "mr_brown"
+      ]
+    },
+    {
+      "id": "notebook",
+      "location_id": "kitchen",
+      "description": "Miss White's notebook with unrelated notes, a red herring.",
+      "incriminates_suspect_ids": []
+    },
+    {
+      "id": "medical_kit",
+      "location_id": "garden",
+      "description": "Dr. Green's medical kit, found but unused.",
+      "incriminates_suspect_ids": []
+    },
+    {
+      "id": "letter",
+      "location_id": "bedroom",
+      "description": "A letter addressed to Miss White, irrelevant to the crime scene.",
+      "incriminates_suspect_ids": []
+    },
+    {
+      "id": "diary_entry",
+      "location_id": "study",
+      "description": "Professor Plum's diary entry mentioning a secret meeting with Lady Eleanor.",
+      "incriminates_suspect_ids": [
+        "prof_plum"
+      ]
+    }
+  ],
+  "killer_id": "mr_brown",
+  "canonical_timeline": [
+    {
+      "time": 150,
+      "actor_id": "dr_green",
+      "location_id": "garden",
+      "description": "Dr. Green starts his evening in the garden."
+    },
+    {
+      "time": 160,
+      "actor_id": "mr_brown",
+      "location_id": "kitchen",
+      "description": "Mr. Brown enters the kitchen but later lies about being here."
+    },
+    {
+      "time": 175,
+      "actor_id": "mrs_peacock",
+      "location_id": "ballroom",
+      "description": "Mrs. Peacock dances in the ballroom."
+    },
+    {
+      "time": 180,
+      "actor_id": "victim",
+      "location_id": "library",
+      "description": "Lady Eleanor is found dead in the library."
+    },
+    {
+      "time": 200,
+      "actor_id": "mr_brown",
+      "location_id": "kitchen",
+      "description": "Mr. Brown claims to have been here until now, but he was lying."
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "seed": 1,
+  "victim": {
+    "name": "Mrs. Elizabeth Grey",
+    "role": "Homeowner and Hostess",
+    "location_of_death_id": "library",
+    "time_of_death": 360
+  },
+  "suspects": [
+    {
+      "id": "mr_alan_wilson",
+      "name": "Mr. Alan Wilson",
+      "archetype": "Jealous Husband",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": false,
+          "corroborating_witness_id": "mrs_clara_brown"
+        }
+      ],
+      "knowledge": [
+        "clue_notebook_1",
+        "clue_letter_2"
+      ],
+      "deception_policy": "Maintains innocence and suspicion on others."
+    },
+    {
+      "id": "dr_robert_jones",
+      "name": "Dr. Robert Jones",
+      "archetype": "Suspicious Doctor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "dining_room",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mr_charles_green"
+        }
+      ],
+      "knowledge": [
+        "clue_footprints_1"
+      ],
+      "deception_policy": "Acts professionally but avoids direct questions."
+    },
+    {
+      "id": "mrs_harriet_smith",
+      "name": "Mrs. Harriet Smith",
+      "archetype": "Nervous Neighbor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "study",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mrs_clara_brown"
+        }
+      ],
+      "knowledge": [
+        "clue_poison_2"
+      ],
+      "deception_policy": "Expresses concern and offers help."
+    },
+    {
+      "id": "mr_charles_green",
+      "name": "Mr. Charles Green",
+      "archetype": "Bumbling Butler",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "dining_room",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "dr_robert_jones"
+        }
+      ],
+      "knowledge": [
+        "clue_scarf_1"
+      ],
+      "deception_policy": "Provides vague and often contradictory statements."
+    },
+    {
+      "id": "mrs_clara_brown",
+      "name": "Mrs. Clara Brown",
+      "archetype": "Gossiping Gardener",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mr_alan_wilson"
+        },
+        {
+          "location_id": "study",
+          "time_window": [
+            345,
+            370
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mrs_harriet_smith"
+        }
+      ],
+      "knowledge": [
+        "clue_notebook_2",
+        "clue_letter_1"
+      ],
+      "deception_policy": "Talks excessively and tries to steer conversations."
+    }
+  ],
+  "locations": [
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "The room where Mrs. Grey was found.",
+      "connected_location_ids": [
+        "dining_room",
+        "study"
+      ]
+    },
+    {
+      "id": "dining_room",
+      "name": "Dining Room",
+      "description": "A large dining area with a long table.",
+      "connected_location_ids": [
+        "library",
+        "kitchen"
+      ]
+    },
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "Mr. Wilson's room where he spends most of his time.",
+      "connected_location_ids": [
+        "garden",
+        "library"
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "Garden",
+      "description": "A well-kept garden with many paths and benches.",
+      "connected_location_ids": [
+        "study",
+        "kitchen"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "The room where meals are prepared.",
+      "connected_location_ids": [
+        "dining_room",
+        "garden"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue_notebook_1",
+      "location_id": "study",
+      "description": "A notebook with detailed notes about Mrs. Grey's habits.",
+      "incriminates_suspect_ids": [
+        "mr_alan_wilson"
+      ]
+    },
+    {
+      "id": "clue_letter_2",
+      "location_id": "garden",
+      "description": "An envelope containing a threatening letter addressed to Mr. Wilson.",
+      "incriminates_suspect_ids": [
+        "mr_alan_wilson"
+      ]
+    },
+    {
+      "id": "clue_footprints_1",
+      "location_id": "dining_room",
+      "description": "Footprints leading from the dining room towards the library.",
+      "incriminates_suspect_ids": []
+    },
+    {
+      "id": "clue_poison_2",
+      "location_id": "study",
+      "description": "A vial of poison with traces of fingerprints matching Mrs. Smith's.",
+      "incriminates_suspect_ids": [
+        "mrs_harriet_smith"
+      ]
+    },
+    {
+      "id": "clue_scarf_1",
+      "location_id": "library",
+      "description": "A scarf found near the body, bearing Mr. Green's distinctive pattern.",
+      "incriminates_suspect_ids": [
+        "mr_charles_green"
+      ]
+    },
+    {
+      "id": "clue_notebook_2",
+      "location_id": "study",
+      "description": "Another notebook with a torn page mentioning Mrs. Grey's secret meeting time.",
+      "incriminates_suspect_ids": []
+    }
+  ],
+  "killer_id": "mr_alan_wilson",
+  "canonical_timeline": [
+    {
+      "time": 345,
+      "actor_id": "mr_alan_wilson",
+      "location_id": "study",
+      "description": "Mr. Wilson is seen entering the library, carrying a small vial."
+    },
+    {
+      "time": 360,
+      "actor_id": "mr_alan_wilson",
+      "location_id": "library",
+      "description": "Mrs. Grey is found dead in the library at this time."
+    }
+  ]
+}

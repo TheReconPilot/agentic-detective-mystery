@@ -1,0 +1,240 @@
+{
+  "seed": 13,
+  "victim": {
+    "name": "Lady Margaret Hargrove",
+    "role": "Socialite",
+    "location_of_death_id": "study",
+    "time_of_death": 205
+  },
+  "suspects": [
+    {
+      "id": "mrs_jones",
+      "name": "Mrs. Eliza Jones",
+      "archetype": "Scheming Housekeeper",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            195,
+            208
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "motive_for_murder"
+      ],
+      "deception_policy": "Mrs. Jones will lie about her whereabouts to protect herself and avoid suspicion."
+    },
+    {
+      "id": "mr_brown",
+      "name": "Mr. Thomas Brown",
+      "archetype": "Jealous Lover",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            180,
+            215
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "miss_smythe"
+        }
+      ],
+      "knowledge": [
+        "motive_for_murder"
+      ],
+      "deception_policy": "Mr. Brown will be truthful to avoid implicating himself unnecessarily."
+    },
+    {
+      "id": "dr_smith",
+      "name": "Dr. William Smith",
+      "archetype": "Cynical Doctor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "bedroom",
+          "time_window": [
+            190,
+            210
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "motive_for_murder"
+      ],
+      "deception_policy": "Dr. Smith will remain neutral and not incriminate himself if there is any doubt."
+    },
+    {
+      "id": "miss_smythe",
+      "name": "Miss Emily Smythe",
+      "archetype": "Innocent Secretary",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            180,
+            215
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "none"
+      ],
+      "deception_policy": "Miss Smythe will be honest as she has nothing to hide."
+    },
+    {
+      "id": "mr_green",
+      "name": "Mr. Henry Green",
+      "archetype": "Suspicious Guest",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            195,
+            208
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "none"
+      ],
+      "deception_policy": "Mr. Green will be truthful but keep to himself."
+    }
+  ],
+  "locations": [
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "A dark, cluttered room with a large oak desk and shelves filled with books.",
+      "connected_location_ids": [
+        "library",
+        "kitchen"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "An expansive room lined with floor-to-ceiling bookshelves and comfortable armchairs.",
+      "connected_location_ids": [
+        "study",
+        "bedroom"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "A spacious, well-equipped kitchen with a large central island and antique appliances.",
+      "connected_location_ids": [
+        "study",
+        "garden"
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "description": "Lady Margaret's private room, decorated in rich fabrics and elegant furnishings.",
+      "connected_location_ids": [
+        "library"
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "Garden",
+      "description": "A beautifully manicured garden with a winding path and a small fountain.",
+      "connected_location_ids": [
+        "kitchen",
+        "conservatory"
+      ]
+    },
+    {
+      "id": "conservatory",
+      "name": "Conservatory",
+      "description": "A glass-enclosed room filled with exotic plants and comfortable seating.",
+      "connected_location_ids": [
+        "garden"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "study_letter",
+      "location_id": "study",
+      "description": "A threatening letter addressed to Lady Margaret, dated the day of her death.",
+      "incriminates_suspect_ids": [
+        "mrs_jones"
+      ]
+    },
+    {
+      "id": "library_book",
+      "location_id": "library",
+      "description": "An open book on the desk with a bookmark pointing to a page describing poison.",
+      "incriminates_suspect_ids": [
+        "dr_smith"
+      ]
+    },
+    {
+      "id": "kitchen_utensil",
+      "location_id": "kitchen",
+      "description": "A blood-stained knife hidden under the sink.",
+      "incriminates_suspect_ids": [
+        "mrs_jones",
+        "mr_green"
+      ]
+    },
+    {
+      "id": "bedroom_potion",
+      "location_id": "bedroom",
+      "description": "An unlabeled vial of clear liquid on Lady Margaret's dresser.",
+      "incriminates_suspect_ids": [
+        "dr_smith"
+      ]
+    },
+    {
+      "id": "garden_tool",
+      "location_id": "garden",
+      "description": "A garden spade with mud caked around the handle.",
+      "incriminates_suspect_ids": [
+        "mr_green"
+      ]
+    }
+  ],
+  "killer_id": "mrs_jones",
+  "canonical_timeline": [
+    {
+      "time": 180,
+      "actor_id": "miss_smythe",
+      "location_id": "library",
+      "description": "Miss Emily Smythe arrives at the library to retrieve a book."
+    },
+    {
+      "time": 195,
+      "actor_id": "mrs_jones",
+      "location_id": "kitchen",
+      "description": "Mrs. Eliza Jones is last seen entering the kitchen with a suspicious look on her face."
+    },
+    {
+      "time": 205,
+      "actor_id": "lady_margaret_hargrove",
+      "location_id": "study",
+      "description": "Lady Margaret Hargrove is found dead in the study, poisoned by an unknown substance."
+    },
+    {
+      "time": 210,
+      "actor_id": "dr_smith",
+      "location_id": "bedroom",
+      "description": "Dr. William Smith enters Lady Margaret's bedroom to perform a routine checkup."
+    }
+  ]
+}

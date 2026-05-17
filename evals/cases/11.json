@@ -1,0 +1,208 @@
+{
+  "seed": 11,
+  "victim": {
+    "name": "Lady Eleanor Pembroke",
+    "role": "wealthy widow",
+    "location_of_death_id": "ballroom",
+    "time_of_death": 370
+  },
+  "suspects": [
+    {
+      "id": "the_spy",
+      "name": "Sir Richard Ashcroft",
+      "archetype": "foreign spy",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            350,
+            410
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Always lie about any incriminating knowledge."
+    },
+    {
+      "id": "the_heiress",
+      "name": "Miss Amelia Whitmore",
+      "archetype": "naive heiress",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            360,
+            420
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "the_gardener"
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Always tell the truth."
+    },
+    {
+      "id": "the_blackmailer",
+      "name": "Mr. Edward Blackwell",
+      "archetype": "blackmailer",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "billiards_room",
+          "time_window": [
+            350,
+            410
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Lie to protect one's reputation."
+    },
+    {
+      "id": "the_lady_in_red",
+      "name": "Lady Margaret Hamilton",
+      "archetype": "jealous rival",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "conservatory",
+          "time_window": [
+            360,
+            420
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Lie to protect one's interests."
+    },
+    {
+      "id": "the_gardener",
+      "name": "Mr. James Thompson",
+      "archetype": "innocent servant",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            360,
+            420
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Always tell the truth."
+    }
+  ],
+  "locations": [
+    {
+      "id": "ballroom",
+      "name": "Ballroom",
+      "description": "The grand room where Lady Eleanor hosted her guests.",
+      "connected_location_ids": [
+        "library",
+        "conservatory"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "A quiet, dusty room filled with books and secrets.",
+      "connected_location_ids": [
+        "ballroom",
+        "billiards_room"
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "Garden",
+      "description": "A serene outdoor space where guests often stroll at night.",
+      "connected_location_ids": [
+        "conservatory"
+      ]
+    },
+    {
+      "id": "billiards_room",
+      "name": "Billiards Room",
+      "description": "Where gentlemen gather to play a game of chance and strategy.",
+      "connected_location_ids": [
+        "library"
+      ]
+    },
+    {
+      "id": "conservatory",
+      "name": "Conservatory",
+      "description": "A greenhouse filled with exotic plants and fragrant flowers.",
+      "connected_location_ids": [
+        "ballroom",
+        "garden"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "bloody_handkerchief",
+      "location_id": "library",
+      "description": "A handkerchief stained with blood. It has the initials 'R.A.' embroidered on it.",
+      "incriminates_suspect_ids": [
+        "the_spy"
+      ]
+    },
+    {
+      "id": "love_letter",
+      "location_id": "ballroom",
+      "description": "A passionate love letter addressed to Lady Eleanor, suggesting a secret affair.",
+      "incriminates_suspect_ids": [
+        "the_lady_in_red",
+        "the_blackmailer"
+      ]
+    },
+    {
+      "id": "blackmail_note",
+      "location_id": "billiards_room",
+      "description": "A threatening note demanding money from Lady Eleanor, signed by 'E.B.'.",
+      "incriminates_suspect_ids": [
+        "the_blackmailer"
+      ]
+    },
+    {
+      "id": "footprints_in_garden",
+      "location_id": "garden",
+      "description": "Fresh footprints leading to and from the conservatory at a crucial time.",
+      "incriminates_suspect_ids": [
+        "the_lady_in_red",
+        "the_spy"
+      ]
+    }
+  ],
+  "killer_id": "the_spy",
+  "canonical_timeline": [
+    {
+      "time": 350,
+      "actor_id": "the_heiress",
+      "location_id": "garden",
+      "description": "Miss Amelia strolls in the garden, enjoying the night air."
+    },
+    {
+      "time": 360,
+      "actor_id": "the_lady_in_red",
+      "location_id": "conservatory",
+      "description": "Lady Margaret tends to her flowers in the conservatory."
+    },
+    {
+      "time": 370,
+      "actor_id": "the_spy",
+      "location_id": "library",
+      "description": "Sir Richard sneaks into the library and confronts Lady Eleanor, leading to a violent argument ending with her death."
+    }
+  ]
+}

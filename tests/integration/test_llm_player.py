@@ -154,3 +154,15 @@ def test_observation_includes_full_map(valid_bible: CaseBible) -> None:
     # Every adjacency should appear in the map block.
     for loc in valid_bible.locations:
         assert loc.id in map_block
+
+
+def test_observation_next_hop_resolves_non_adjacent_targets(valid_bible: CaseBible) -> None:
+    """The LLM keeps trying single-hop moves to non-adjacent rooms. The
+    NEXT HOP block precomputes the first step so it doesn't have to."""
+    state = initial_state(valid_bible)  # starts in library
+    obs = render_observation(state, valid_bible)
+    assert "NEXT HOP TO UNSEARCHED ROOMS" in obs
+    hop_block = obs.split("NEXT HOP TO UNSEARCHED ROOMS")[1]
+    # The fixture map is library <-> hallway <-> garden. To reach garden
+    # from library, the first step must be hallway.
+    assert "to reach garden, first `move hallway`" in hop_block

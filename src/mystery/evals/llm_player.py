@@ -17,6 +17,7 @@ Bugs that show up here cannot be caught by canned ``FakeListChatModel`` tests.
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
@@ -112,6 +113,44 @@ class PlaytestReport:
         return f"{head}\n{body}"
 
 
+def _next_hop_toward(
+    bible: CaseBible,
+    start: str,
+    targets: list[str],
+) -> dict[str, str]:
+    """BFS from ``start``; return ``{target: first_step}`` for each reachable target.
+
+    The 14b LLM sees the FULL MAP but routinely tries to issue a single-hop
+    move to a non-adjacent room. A precomputed "to reach X, first move to Y"
+    hint sidesteps that whole class of failure — the model only has to read
+    a label, not solve graph traversal.
+    """
+    if not targets:
+        return {}
+    adj: dict[str, list[str]] = {
+        loc.id: list(loc.connected_location_ids) for loc in bible.locations
+    }
+    target_set = set(targets)
+    parent: dict[str, str] = {start: start}
+    q: deque[str] = deque([start])
+    while q:
+        node = q.popleft()
+        for nxt in adj.get(node, []):
+            if nxt in parent:
+                continue
+            parent[nxt] = node
+            q.append(nxt)
+    out: dict[str, str] = {}
+    for target in target_set:
+        if target not in parent or target == start:
+            continue
+        cur = target
+        while parent[cur] != start:
+            cur = parent[cur]
+        out[target] = cur
+    return out
+
+
 def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | None = None) -> str:
     """Render the textual state the LLM detective sees each turn.
 
@@ -142,6 +181,15 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
     unexamined = sorted(all_locs - set(state["examined_location_ids"]))
     unexamined_str = ", ".join(unexamined) or "(none — you have searched everywhere)"
     here_examined = "yes" if here.id in state["examined_location_ids"] else "NO, not yet"
+    next_hops = _next_hop_toward(bible, here.id, unexamined)
+    if next_hops:
+        hop_lines = "\n".join(
+            f"    to reach {target}, first `move {step}`"
+            for target, step in sorted(next_hops.items())
+        )
+        next_hop_block = f"NEXT HOP TO UNSEARCHED ROOMS (from here):\n{hop_lines}\n"
+    else:
+        next_hop_block = ""
 
     return (
         f"VICTIM: {bible.victim.name} ({bible.victim.role}), "
@@ -150,6 +198,7 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
         f"  examined this room? {here_examined}\n"
         f"EXITS (from here, single move): {exits}\n"
         f"FULL MAP (you must chain moves through adjacent rooms):\n{map_lines}\n"
+        f"{next_hop_block}"
         f"SUSPECTS (use these ids): {suspect_ids}\n"
         f"CLUES FOUND: {revealed}\n"
         f"ROOMS NOT YET SEARCHED (need `examine` after moving): {unexamined_str}\n"

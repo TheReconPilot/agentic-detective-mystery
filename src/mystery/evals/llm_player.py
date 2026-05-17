@@ -52,24 +52,30 @@ Available commands (you MUST use these exact verbs):
 Strategy (follow in order):
 1. If the current room is NOT YET examined, your next command is `examine`.
 2. If there are still rooms in ROOMS NOT YET SEARCHED, your next command is
-   `move <one of them>` (must be adjacent — use EXITS).
-3. Once every room is searched (ROOMS NOT YET SEARCHED is empty), STOP
-   examining. The interrogation phase begins: for each suspect, first `ask`
-   them open-ended questions about their whereabouts and the victim, then
-   `show <suspect_id> <clue_id>` to confront them with each clue from CLUES
-   FOUND that plausibly relates to them. Confrontation is when contradictory
-   stories surface — use it liberally.
+   `move <one of them>` — use the NEXT HOP TO UNSEARCHED ROOMS block to
+   pick the right first step (the LLM cannot teleport).
+3. Once every room is searched and CLUES FOUND is non-empty, the
+   INTERROGATION phase begins:
+   - First, `ask` each suspect ONCE about their whereabouts at the time of
+     death. That establishes a baseline alibi.
+   - Then, for each clue in CLUES FOUND, pick the suspect whose alibi or
+     archetype it most plausibly contradicts and `show <suspect_id> <clue_id>`.
+     This is where lies break — confrontation is the only way to make
+     progress in this phase.
+   - Do NOT ask the same suspect more than 2-3 questions back-to-back; that
+     loops without producing new evidence. Rotate suspects or pivot to `show`.
 4. When the evidence points clearly to one suspect, `accuse <suspect_id>`.
-   The game ends instantly on accusation, right or wrong, so don't guess —
-   but DO accuse before your turns run out; an indecisive detective loses.
+   The game ends instantly on accusation, right or wrong — don't guess, but
+   DO accuse before turns run out; an indecisive detective loses.
 
 Hard rules:
-- NEVER `examine` once ROOMS NOT YET SEARCHED is empty. There is nothing
-  more to find by examining — the next command MUST be `ask`, `show`, or
-  `accuse`. Re-examining a searched room is the single biggest failure
-  mode; do not do it.
-- NEVER repeat the same command twice in a row. If LAST RESULT says you
-  have already catalogued every clue here, MOVE or interrogate.
+- NEVER `examine` once ROOMS NOT YET SEARCHED is empty. The next command
+  MUST be `ask`, `show`, `accuse`, or (rarely) `move`. Re-examining a
+  searched room is the single biggest failure mode; do not do it.
+- NEVER repeat the same command twice in a row.
+- After 3 consecutive `ask` commands without progress, your NEXT command
+  MUST be `show <suspect> <clue>` or `accuse <suspect>`. Asking variations
+  of the same question is not progress.
 - Use ONLY the ids shown in the observation (snake_case). Do not invent ids.
 - Write `ask` questions as natural English sentences, not snake_case_strings.
 - For `show`, the clue id is one of the snake_case ids in CLUES FOUND.

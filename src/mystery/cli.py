@@ -340,7 +340,10 @@ def playtest(
                 f"  t{step.turn} [bold]{step.parsed_kind}[/] {step.raw_command!r}",
             )
             if step.output:
-                console.print(f"    [dim]{step.output.splitlines()[0][:140]}[/]")
+                # First 3 non-empty lines so clue lists from `examine` are visible.
+                shown = [line for line in step.output.splitlines() if line.strip()][:3]
+                for line in shown:
+                    console.print(f"    [dim]{line[:160]}[/]")
         if report.suspect_commitments:
             console.print("\n[bold]commitments captured:[/]")
             for suspect_id, summaries in report.suspect_commitments.items():

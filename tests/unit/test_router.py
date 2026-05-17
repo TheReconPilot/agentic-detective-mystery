@@ -65,3 +65,55 @@ def test_returns_parse_error_for_bad_input(text: str, expected_substring: str) -
     result = parse_action(text)
     assert isinstance(result, ParseError)
     assert expected_substring in result.message
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Verb synonyms an LLM is likely to use.
+        ("investigate", ExamineAction()),
+        ("inspect", ExamineAction()),
+        (
+            "question butler about it",
+            InterrogateAction(suspect_id="butler", question="about it"),
+        ),
+        (
+            "interview butler what time",
+            InterrogateAction(suspect_id="butler", question="what time"),
+        ),
+        ("walk library", MoveAction(location_id="library")),
+        # Filler words after the verb.
+        ("move to library", MoveAction(location_id="library")),
+        ("go to the library", MoveAction(location_id="library")),
+        ("walk into the garden", MoveAction(location_id="garden")),
+        ("accuse the butler", AccuseAction(suspect_id="butler")),
+        # Markdown wrappers and leading list markers.
+        ("**examine**", ExamineAction()),
+        ("- examine", ExamineAction()),
+        ("1. examine", ExamineAction()),
+        ("`examine`", ExamineAction()),
+        # Quoted/punctuated arguments.
+        ("examine.", ExamineAction()),
+        ("examine\n", ExamineAction()),
+        ("accuse butler.", AccuseAction(suspect_id="butler")),
+    ],
+)
+def test_tolerates_llm_formatting_noise(text: str, expected: object) -> None:
+    """The detective LLM emits markdown, fillers, and punctuation. Accept them."""
+    assert parse_action(text) == expected
+
+
+def test_interrogate_strips_quotes_from_suspect_and_question() -> None:
+    """LLMs love to wrap things in quotes — strip them so the suspect id resolves."""
+    result = parse_action('ask "butler" "where were you"')
+    assert isinstance(result, InterrogateAction)
+    assert result.suspect_id == "butler"
+    assert result.question == "where were you"
+
+
+def test_interrogate_strips_colon_after_suspect_id() -> None:
+    """'ask butler: where were you' is a natural LLM format. Don't break on it."""
+    result = parse_action("ask butler: where were you")
+    assert isinstance(result, InterrogateAction)
+    assert result.suspect_id == "butler"
+    assert result.question == "where were you"

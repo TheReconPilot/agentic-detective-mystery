@@ -212,12 +212,19 @@ giving the game pacing, voice, and feedback.
   a "you previously told this detective" block. Extractor wires through the
   graph dispatcher and is optional for offline tests.
 
-- **M10 — `show <suspect> <clue_id>` tool.** Confront a suspect with a
-  specific clue. The suspect agent receives the clue text in addition to the
-  question and is prompted to react. This is where commitments pay off:
-  showing a clue that contradicts a prior commitment is the moment the
-  deception policy is supposed to crack. Without M9, this command is just
-  a fancier `ask`.
+- **M10 — `show <suspect> <clue_id>` tool.** ✅ Done. `ShowAction` in the
+  discriminated union, `show/present/confront` verbs in the router (with
+  filler-word tolerance between args), `apply_show` in
+  [src/mystery/tools/show.py](src/mystery/tools/show.py), and a
+  `confronting_clue` param threaded through `respond_as_suspect` /
+  `build_suspect_messages` so the persona + voice + commitments scaffolding
+  is fully shared with the plain `ask` path. The reaction feeds the same
+  commitment extractor as `ask`, so M9 carry-through covers confrontations
+  too. Guarded: a clue must be in `state["revealed_clue_ids"]` before it
+  can be shown. Detective LLM prompt updated to use `show` after
+  interrogations, plus an observation-level nudge banner that fires after
+  3 consecutive `ask` commands once any clue is revealed — soft prompt
+  rules alone weren't enough to break the 14b's "ask-spam" pattern.
 
 - **M11 — Scripted "beats".** A small library of mid-case events (a second
   body, a recantation, a new room opening) the generator schedules into the

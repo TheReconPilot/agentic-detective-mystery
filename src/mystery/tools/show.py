@@ -76,7 +76,9 @@ def apply_show(
     new_commitment = extractor.extract(suspect, framing_question, reply)
     update: dict[str, Any] = {
         "turn_count": state["turn_count"] + 1,
-        "last_output": f"You show {suspect.name} the {clue.description}\n{suspect.name}: {reply}",
+        "last_output": (
+            f"You show {suspect.name} the evidence: {clue.description}\n{suspect.name}: {reply}"
+        ),
     }
     if new_commitment is not None:
         updated_commitments = {k: list(v) for k, v in state["suspect_commitments"].items()}

@@ -57,3 +57,21 @@ def test_user_message_handles_empty_retrieval(valid_bible: CaseBible) -> None:
     user = str(msgs[1].content)
     assert "no specific facts" in user
     assert "who are you?" in user
+
+
+def test_system_message_renders_voice_when_set(valid_bible: CaseBible) -> None:
+    """A suspect with a voice gets a 'How you talk:' line in the system prompt."""
+    butler = _by_id(valid_bible, "butler")
+    assert butler.voice  # fixture must have one or this test is meaningless
+    msgs = build_suspect_messages(butler, [], question="?")
+    system = str(msgs[0].content)
+    assert "How you talk:" in system
+    assert butler.voice in system
+
+
+def test_system_message_omits_voice_line_when_empty(valid_bible: CaseBible) -> None:
+    """Bibles generated before the voice field load with voice='' — no broken line."""
+    butler = _by_id(valid_bible, "butler").model_copy(update={"voice": ""})
+    msgs = build_suspect_messages(butler, [], question="?")
+    system = str(msgs[0].content)
+    assert "How you talk:" not in system

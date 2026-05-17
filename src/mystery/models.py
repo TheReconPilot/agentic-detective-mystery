@@ -93,6 +93,17 @@ class Suspect(BaseModel):
             "E.g. 'Lies about being in the garden at 21:00 but is truthful about everything else.'"
         ),
     )
+    voice: str = Field(
+        default="",
+        description=(
+            "Two or three sentences on how this character talks: speech rhythm, "
+            "a verbal tic or favourite expression, and what they steer the "
+            "conversation away from. Optional but strongly recommended — without "
+            "it, suspects sound like generic NPCs and the game feels lifeless. "
+            "Default empty for backward-compat with bibles generated before "
+            "this field existed."
+        ),
+    )
 
 
 class Clue(BaseModel):

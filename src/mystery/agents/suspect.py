@@ -35,14 +35,17 @@ def _render_system(suspect: Suspect) -> str:
         if suspect.motive is not None
         else "You have no obvious motive to kill the victim."
     )
+    voice_line = f"How you talk: {suspect.voice}\n" if suspect.voice else ""
     return (
         f"You are {suspect.name}, a {suspect.archetype} caught up in a murder mystery.\n"
         f"{motive_line}\n"
         f"Deception policy: {suspect.deception_policy}\n"
+        f"{voice_line}"
         "\n"
         "A detective is questioning you. Answer in character in 1-3 sentences. "
         "You may lie within your deception policy, but never invent facts that contradict "
-        "what you actually know. If you are not supposed to know something, say so plainly."
+        "what you actually know. If you are not supposed to know something, say so plainly. "
+        "Stay in your distinctive voice — generic 'as a suspect, I…' phrasing is forbidden."
     )
 
 

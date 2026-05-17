@@ -15,7 +15,10 @@ CaseBible schema.
 Hard requirements:
 - Exactly one killer, recorded in `killer_id`.
 - 3 to 5 suspects. Give each a distinct archetype, motive (or None for the obvious
-  innocent), and a deception_policy in plain English.
+  innocent), a deception_policy in plain English, and a `voice` of 2-3 sentences
+  describing how they talk — speech rhythm, a verbal tic or favourite phrase, and
+  one topic they steer away from. Make the voices recognisably different from
+  each other; flat NPC-speak ruins the game.
 - 4 to 6 locations forming a small connected graph (use `connected_location_ids`).
 - 4 to 8 physical clues scattered across locations. At least one clue MUST
   incriminate the killer; some clues may point to innocents as red herrings.

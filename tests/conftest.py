@@ -63,6 +63,10 @@ def _make_valid_bible() -> CaseBible:
                 ],
                 knowledge=["The library door sticks when the air is humid."],
                 deception_policy="Lies about being in the garden; truthful about the household.",
+                voice=(
+                    "Clipped, formal, lapses into 'sir' every other sentence. "
+                    "Goes very quiet whenever the garden is mentioned."
+                ),
             ),
             Suspect(
                 id="niece",
@@ -79,6 +83,10 @@ def _make_valid_bible() -> CaseBible:
                 ],
                 knowledge=["Lord Ashworth changed his will on Tuesday."],
                 deception_policy="Truthful; nervous and over-explains.",
+                voice=(
+                    "Trails off, restarts mid-sentence, fills silences with "
+                    "'I mean—'. Brittle, on the edge of tears."
+                ),
             ),
             Suspect(
                 id="cook",
@@ -95,6 +103,10 @@ def _make_valid_bible() -> CaseBible:
                 ],
                 knowledge=["Dinner was served at half past eight."],
                 deception_policy="Truthful.",
+                voice=(
+                    "Warm, motherly, uses cooking metaphors for everything. "
+                    "Calls the detective 'love'."
+                ),
             ),
         ],
         clues=[

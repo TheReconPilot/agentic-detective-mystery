@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from langchain_chroma import Chroma
     from langchain_core.language_models import BaseChatModel
 
+    from mystery.agents.commitments import CommitmentExtractor
     from mystery.graph.state import Action
     from mystery.models import CaseBible
 
@@ -86,6 +87,7 @@ class PlaytestReport:
     parse_errors: int
     repeated_actions: int
     steps: list[PlaytestStep] = field(default_factory=list)
+    suspect_commitments: dict[str, list[str]] = field(default_factory=dict)
 
     def as_text(self) -> str:
         head = (
@@ -186,6 +188,7 @@ def play_with_llm(
     max_turns: int = 60,
     max_consecutive_repeats: int = 4,
     no_progress_window: int = 12,
+    commitment_extractor: CommitmentExtractor | None = None,
 ) -> PlaytestReport:
     """Run a full LLM-vs-LLM playtest. Returns a structured report.
 
@@ -201,7 +204,7 @@ def play_with_llm(
     abort. Set high enough that legitimate "all rooms searched, now I'm
     interrogating" phases can run.
     """
-    graph = build_game_graph(bible, vectorstore, suspect_chat_model)
+    graph = build_game_graph(bible, vectorstore, suspect_chat_model, commitment_extractor)
     state = initial_state(bible)
     steps: list[PlaytestStep] = []
     parse_errors = 0
@@ -292,6 +295,10 @@ def play_with_llm(
             break
 
     accusation = state["accusation"]
+    commitments_view = {
+        suspect_id: [c.summary for c in cs]
+        for suspect_id, cs in state["suspect_commitments"].items()
+    }
     return PlaytestReport(
         seed=bible.seed,
         success=bool(accusation and accusation.correct),
@@ -301,4 +308,5 @@ def play_with_llm(
         parse_errors=parse_errors,
         repeated_actions=repeated_actions,
         steps=steps,
+        suspect_commitments=commitments_view,
     )

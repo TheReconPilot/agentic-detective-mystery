@@ -317,6 +317,7 @@ def playtest(
     suspect_chat = _default_chat_model_factory(settings)
     detective_chat = _default_chat_model_factory(settings)
     vectorstore = get_or_build_index(bible, embeddings, _index_dir_for(settings, seed))
+    commitment_extractor = _default_commitment_extractor_factory(settings)
 
     console.print(f"playtesting [cyan]seed={seed}[/] for up to {max_turns} turns...")
     report = play_with_llm(
@@ -325,6 +326,7 @@ def playtest(
         suspect_chat,
         detective_chat,
         max_turns=max_turns,
+        commitment_extractor=commitment_extractor,
     )
     mark = "[green]✓[/]" if report.success else "[red]✗[/]"
     console.print(
@@ -339,6 +341,12 @@ def playtest(
             )
             if step.output:
                 console.print(f"    [dim]{step.output.splitlines()[0][:140]}[/]")
+        if report.suspect_commitments:
+            console.print("\n[bold]commitments captured:[/]")
+            for suspect_id, summaries in report.suspect_commitments.items():
+                console.print(f"  [cyan]{suspect_id}[/]:")
+                for s in summaries:
+                    console.print(f"    - {s}")
 
 
 if __name__ == "__main__":

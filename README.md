@@ -1,10 +1,17 @@
 # agentic-detective-mystery
 
+[![ci](https://github.com/TheReconPilot/agentic-detective-mystery/actions/workflows/ci.yml/badge.svg)](https://github.com/TheReconPilot/agentic-detective-mystery/actions/workflows/ci.yml)
+[![python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3130/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/mypy-strict-2A6DB4)](https://mypy-lang.org/)
+[![license](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
+
 > A local-first text adventure where you interrogate LLM-driven suspects to solve a procedurally generated murder. Built on **LangGraph + LangChain + Chroma**, runs entirely on **local Ollama models** (3B on a 4 GB laptop GPU, 8–14B on a 16 GB workstation).
 
 The architectural keystone is a **case bible** — victim, suspects, real killer, motives, true and false alibis, physical clues, timeline — generated up-front and never shown to the player. Every suspect agent answers via RAG over a *character-scoped* slice of that bible, so long conversations cannot drift away from canonical truth. Suspects may lie within an explicit `deception_policy`, but they cannot invent facts.
 
-**Status:** M1–M6 complete (schemas, generator, RAG, suspect agent, full playable game loop, eval harness). M7 polish in progress. See [PLAN.md](PLAN.md) for the roadmap.
+**Status (v0.1.0):** M1–M10 complete. Suspects have generated voices (M8), carry structured commitments across turns (M9), and can be confronted with specific clues via `show <suspect> <clue>` (M10). See [PLAN.md](PLAN.md) for the milestone-by-milestone roadmap, including the post-v0.1 ideas (M11: scripted mid-case beats) still open.
 
 ---
 
@@ -24,16 +31,23 @@ Three properties fall out, each backed by tests:
 
 ```mermaid
 flowchart LR
-    Bible[(CaseBible<br/>victim · suspects · alibis · clues · timeline)]
+    Bible[(CaseBible<br/>victim · suspects · voice · alibis · clues · timeline)]
     Bible -->|build_chunks| Chunks["Typed Chunks<br/>scope + character_id metadata"]
     Chunks -->|OllamaEmbeddings| Chroma[(Chroma index)]
-    Q[Player question] --> Agent
-    Persona["Suspect persona<br/>+ deception_policy"] --> Agent
+
+    Q[Player question or<br/>clue confrontation] --> Agent
+    Persona["Suspect persona<br/>name · archetype · motive<br/>deception_policy · voice"] --> Agent
+    Commitments["Prior commitments<br/>(structured summaries,<br/>NOT raw transcript)"] --> Agent
     Chroma -->|"suspect_retriever<br/>filter: character_id=X OR scope=world"| Retrieved[Retrieved docs]
     Retrieved --> Agent{{respond_as_suspect}}
     Agent -->|ChatOllama| Reply["In-character reply<br/>(may lie within policy)"]
+    Reply -->|LLMCommitmentExtractor| NewCommitment["new Commitment<br/>(claimed location · time · witnesses)"]
+    NewCommitment -.appended to GameState.-> Commitments
 
     Bible -.never indexed.-> Excluded["canonical_timeline<br/>deception_policy<br/>clues"]
+
+    classDef exclusion stroke-dasharray: 4 4
+    class Excluded exclusion
 ```
 
 Three things are **deliberately excluded** from the RAG layer:
@@ -44,21 +58,26 @@ Three things are **deliberately excluded** from the RAG layer:
 
 Tests in [test_chunks.py](tests/unit/test_chunks.py) guard each exclusion.
 
+The **commitment loop** (M9) is the second load-bearing discipline. Instead of appending every (question, answer) pair into the next turn's prompt — which lets the LLM treat its own past lies as ground truth — we extract a structured `Commitment` after each interrogation (claimed location, time window, named witnesses, denied facts) and feed only that summary into the next turn. The suspect stays consistent with their own lies *and* the prompt stays bounded. The same loop fires for `show` (M10) confrontations, so contradicting a prior commitment with a clue is the moment the deception policy is supposed to crack.
+
 ## What's tested
 
 | Layer | Approach | Where |
 | --- | --- | --- |
 | Case-bible shape | Pydantic v2 with `extra="forbid"` | [test_models.py](tests/unit/test_models.py) |
-| Case-bible semantics | 8 named invariants (killer is a suspect, alibis resolve, killer's alibi is a lie, …) | [test_validate.py](tests/unit/test_validate.py) |
-| Generator retry loop | Stubbed `BibleLLM` scripted to fail then succeed | [test_generator.py](tests/unit/test_generator.py) |
+| Case-bible semantics | 9 named invariants (killer is a suspect, alibis resolve, killer's alibi is a lie, symmetric location edges, …) | [test_validate.py](tests/unit/test_validate.py) |
+| Generator retry loop | Stubbed `BibleLLM` scripted to fail then succeed; validation errors fed back into retry prompts | [test_generator.py](tests/unit/test_generator.py) |
 | RAG scope isolation | Real Chroma + deterministic fake embeddings, adversarial cross-suspect probes | [test_rag_scope_isolation.py](tests/integration/test_rag_scope_isolation.py) |
-| Suspect agent prompt | Pure function checked for persona inclusion, retrieval rendering, motive=None branch | [test_suspect_prompt.py](tests/unit/test_suspect_prompt.py) |
+| Suspect agent prompt | Pure function checked for persona, voice, retrieval rendering, motive=None branch | [test_suspect_prompt.py](tests/unit/test_suspect_prompt.py) |
+| Commitment loop | Model schema, extractor protocol, prompt rendering, no-transcript-leak | [test_commitments.py](tests/unit/test_commitments.py), [test_commitments_loop.py](tests/integration/test_commitments_loop.py) |
+| Show / confrontation | Router parse, revealed-clue guard, clue rendering, extractor on reaction, graph dispatch | [test_show_tool.py](tests/unit/test_show_tool.py), [test_show_dispatch.py](tests/integration/test_show_dispatch.py) |
 | Game tools | Pure functions tested in isolation, every branch | [test_tools.py](tests/unit/test_tools.py) |
 | Game loop end-to-end | Scripted player through the compiled LangGraph | [test_game_loop.py](tests/integration/test_game_loop.py) |
 | REPL | typer CliRunner driving the play loop via stdin | [test_play_command.py](tests/unit/test_play_command.py) |
+| LLM-vs-LLM playtest | Scripted `FakeListChatModel` detective; observation rendering, no-progress / consecutive-repeat aborts | [test_llm_player.py](tests/integration/test_llm_player.py) |
 | Eval harness | Stub LLM judge, multi-bible aggregation | [test_solvability_eval.py](tests/integration/test_solvability_eval.py), [test_consistency_eval.py](tests/integration/test_consistency_eval.py) |
 
-107 tests, 96% line coverage at the time of writing. The default `uv run pytest` is fully offline — no Ollama, no network — and runs in under 10 seconds. Real-LLM quality numbers are produced by `mystery eval` against a running Ollama server.
+173 tests, 94% line coverage. The default `uv run pytest` is fully offline — no Ollama, no network — and runs in under 5 seconds. Real-LLM quality numbers are produced by `mystery eval` and `mystery playtest` against a running Ollama server.
 
 ## Quickstart
 
@@ -83,42 +102,58 @@ In the REPL, type `help` to see the command list. The first run for a given seed
 
 ## Sample session
 
-*Illustrative output from the bundled test bible (Lord Ashworth, killed in the library):*
+*Illustrative — generated against the bundled `evals/cases/42.json` with `qwen2.5:14b-instruct-q4_K_M`. Mrs. Caroline is the killer; her deception policy is "divert attention to the butler", her voice is "hushed tone, frequent loyalty-to-Lady-Eleanor, avoids financial troubles".*
 
 ```
-The case of Lord Ashworth. The host of the dinner party was found dead in the
-Library. You arrive to investigate. Type 'help' for commands.
+The case of Lady Eleanor. The matron was found dead in the Estate Manor.
+You arrive to investigate. Type 'help' for commands.
 
-(library, turn 0)
+(estate_manor, turn 0)
 > examine
 You find:
-  - A torn letter mentioning a disinheritance. [torn_letter]
+  - A partially used bottle of poison, near Lady Eleanor's body. [estate_manor_poison_bottle]
 
-(library, turn 1)
-> move hallway
-You enter the Hallway. A long marble corridor.
+(estate_manor, turn 1)
+> move library
+You enter Library. A room filled with books and legal documents.
 
-(hallway, turn 2)
+(library, turn 2)
 > examine
 You find:
-  - A pair of muddy boots tucked behind the umbrella stand. [muddy_boots]
+  - A hidden diary revealing Lady Eleanor's true feelings about her will. [library_secret_diary]
 
-(hallway, turn 3)
-> ask butler Where were you when the clock struck nine?
-Mr. Hodges: I was in the garden taking the night air, sir. I saw nothing.
+# ... player searches every room, then begins interrogating ...
 
-(hallway, turn 4)
-> notes
-Your notebook:
-  VICTIM: Lord Ashworth (host of the dinner party) — found in library at t=60.
-  [torn_letter] A torn letter mentioning a disinheritance.
-  [muddy_boots] A pair of muddy boots tucked behind the umbrella stand.
+(estate_manor, turn 12)
+> ask mrs_caroline where were you at the time of death
+Mrs. Caroline: I was in the kitchen preparing dinner as I do every evening,
+ensuring that everything is ready for the family's meal. The other servants
+can vouch for my presence there.
+                          # commitment captured: claimed_location=kitchen,
+                          # named_witness_ids=[other staff]
 
-(hallway, turn 4)
-> accuse butler
-You accuse Mr. Hodges. After a long pause, they confess.
-The case is solved in 5 turns.
+(estate_manor, turn 13)
+> show mrs_caroline estate_manor_poison_bottle
+You show Mrs. Caroline the evidence: A partially used bottle of poison, near
+Lady Eleanor's body.
+Mrs. Caroline: Oh dear, that bottle is certainly troubling. But surely
+someone as kind and loyal as our charming butler, Mr. Thompson, would never
+be involved in something like this. He's always around and very observant.
+                          # deception policy fires: deflection toward butler,
+                          # consistent with her prior kitchen alibi (M9)
+
+(estate_manor, turn 14)
+> accuse mrs_caroline
+You accuse Mrs. Caroline. The case is solved.
 ```
+
+A few things worth pointing at:
+
+- The suspect **stays in her established voice** (hushed, deferential, focused on loyalty) across both `ask` and `show`.
+- The **prior commitment** (kitchen alibi) constrains the response on the next turn — she doesn't suddenly invent a new whereabouts when confronted.
+- The **deception policy** ("divert attention to the butler") fires exactly where it should: at the moment the evidence is in front of her, she pivots to naming Mr. Thompson.
+
+None of this is hard-coded for this case — it falls out of the architecture diagrammed above.
 
 ## Switching hardware tiers
 
@@ -167,18 +202,26 @@ Pre-commit hooks (`ruff-check`, `ruff-format`) run on every commit. Tests use `D
 
 ```
 src/mystery/
-  models.py        CaseBible, Suspect, Clue, Location (pydantic v2, extras forbidden)
-  config.py        pydantic-settings, env-prefixed MYSTERY_*
-  case_gen/        BibleLLM protocol + retry loop + Ollama-backed structured-output impl
-  rag/             bible → chunks → Chroma; suspect_retriever with metadata scope filter
-  agents/          respond_as_suspect: retrieve → render persona → chat → string
-  graph/           GameState, action parser, LangGraph dispatcher
-  tools/           pure state-update functions (move / examine / notebook / accuse / interrogate)
-  evals/           optimal player, solvability aggregator, consistency judge
-  cli.py           typer entry point (new, interrogate, play, eval, version)
+  models.py            CaseBible, Suspect (voice), Clue, Location, Commitment
+  config.py            pydantic-settings, env-prefixed MYSTERY_*
+  case_gen/            BibleLLM protocol + retry loop (with validation-error feedback)
+  rag/                 bible → chunks → Chroma; suspect_retriever with metadata filter
+  agents/
+    suspect.py         respond_as_suspect: persona + voice + commitments + (optional clue) → reply
+    commitments.py     CommitmentExtractor Protocol + LLM/Null implementations
+  graph/               GameState (with suspect_commitments), Action union, LangGraph dispatcher
+  tools/               apply_move / examine / notebook / accuse / interrogate / show
+  evals/
+    optimal_player.py  DFS-based omniscient player (solvability harness)
+    solvability.py     aggregator across many bibles
+    consistency.py     LLM-judge that classifies suspect responses vs. the bible
+    llm_player.py      blind LLM detective: observation + parse + dispatch + abort guards
+  cli.py               typer entry point: new / interrogate / play / eval / playtest / version
 tests/
-  unit/            pure functions, schema validation, CLI with stubbed factories
-  integration/     real Chroma + DeterministicFakeEmbedding + FakeListChatModel
+  unit/                pure functions, schema validation, CLI with stubbed factories
+  integration/         real Chroma + DeterministicFakeEmbedding + FakeListChatModel
+.github/workflows/
+  ci.yml               ruff format + ruff check + mypy + pytest on every push / PR
 ```
 
 See [CLAUDE.md](CLAUDE.md) for the invariants the codebase enforces and [PLAN.md](PLAN.md) for the milestone-by-milestone roadmap.

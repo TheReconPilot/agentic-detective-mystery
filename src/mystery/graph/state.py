@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Annotated, Literal, TypedDict
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from mystery.models import CaseBible
+    from mystery.models import CaseBible, Commitment
 
 _StrictAction = ConfigDict(extra="forbid", frozen=True)
 
@@ -82,6 +82,8 @@ class GameState(TypedDict):
     pending_action: Action | None
     last_output: str
 
+    suspect_commitments: dict[str, list[Commitment]]
+
 
 def initial_state(bible: CaseBible) -> GameState:
     """Build the starting GameState: the player walks in on the crime scene."""
@@ -100,4 +102,5 @@ def initial_state(bible: CaseBible) -> GameState:
         done=False,
         pending_action=None,
         last_output="",
+        suspect_commitments={},
     )

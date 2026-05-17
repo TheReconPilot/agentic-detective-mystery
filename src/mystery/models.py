@@ -131,3 +131,40 @@ class CaseBible(BaseModel):
     clues: list[Clue]
     killer_id: str
     canonical_timeline: list[TimelineEvent]
+
+
+class Commitment(BaseModel):
+    """A structured summary of what a suspect just claimed in one interrogation turn.
+
+    The raw transcript is deliberately NOT persisted into the next suspect prompt;
+    if it were, the LLM would treat its own past lies as ground truth and the
+    bible-as-canon discipline would erode. A Commitment is the small, surgical
+    slice we feed back: claimed location, claimed time window, named witnesses,
+    explicitly denied facts. The deception policy then has something concrete to
+    stay consistent with across turns.
+    """
+
+    model_config = _StrictModel
+
+    claimed_location_id: str | None = Field(
+        default=None,
+        description="Location the suspect claimed to be at, if any.",
+    )
+    claimed_time_window: tuple[int, int] | None = Field(
+        default=None,
+        description="(start, end) minutes from case t0, if the suspect committed to a time.",
+    )
+    named_witness_ids: list[str] = Field(
+        default_factory=list,
+        description="Other suspect ids the speaker named as witnesses to their account.",
+    )
+    denied_facts: list[str] = Field(
+        default_factory=list,
+        description="Statements the suspect explicitly denied (one short sentence each).",
+    )
+    summary: str = Field(
+        description=(
+            "One short sentence paraphrasing the claim, used verbatim in the "
+            "next-turn 'you previously told this detective' block."
+        ),
+    )

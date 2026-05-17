@@ -188,8 +188,52 @@ Each milestone ends with green tests and a runnable demo.
 - **M6 — Evals** ✅ Done (harness). Three pipelines in [src/mystery/evals/](src/mystery/evals/): (1) `play_to_solve` is a DFS-based optimal player that visits every reachable location, examines each, and accuses `bible.killer_id` — verifies the case is mechanically solvable. (2) `run_consistency_eval` interrogates every suspect with a standard question set, then hands each (bible, response) to a `ConsistencyJudge` Protocol — the production `LLMConsistencyJudge` sees the full bible and classifies as `consistent | contradicts | refused`. (3) `run_solvability_eval` aggregates the optimal player across N bibles → success rate + mean turns. `mystery eval --cases-dir evals/cases [--consistency]` runs both. Offline harness tests stub the judge; **the 20-case run against real Ollama remains a user task** — drop generated bibles into `evals/cases/` and run the CLI.
 - **M7 — Polish** README with architecture diagram, recorded demo (asciinema), badges (CI, coverage), tagged v0.1.0 release.
 
+## Post-v0.1 roadmap (engagement, not architecture)
+
+The bible-as-canon design solves *correctness*. It does not solve *fun*. The
+playtest harness (`mystery playtest`) makes that visible: a competent 14b
+detective collects every clue in 9 turns and then has nothing interesting to
+do, because the play loop is retrieval, not story. The ideas below are about
+giving the game pacing, voice, and feedback.
+
+- **M8 — Suspect voice.** Each `Suspect` gets a `voice` field (2-3 sentences:
+  speech rhythm, a verbal tic, what they avoid talking about). The generator
+  produces it; the suspect agent's system prompt renders it alongside the
+  deception policy. Cheap, high-leverage, no architectural change.
+
+- **M9 — Suspect memory as commitments (not transcripts).**
+  The naive memory design — append every (Q, A) into the next prompt — works
+  for a handful of turns then breaks: context bloats, and the suspect starts
+  elaborating on its own past lies inconsistently because the LLM treats its
+  prior responses as ground truth. The bible-as-canon discipline collapses
+  once a suspect's own words enter the prompt unfiltered.
+
+  Instead, after each interrogation turn extract a small **Commitment** record
+  from the suspect's response: claimed location, claimed time window, named
+  witnesses, denied facts. Store on `GameState` keyed by suspect_id. Next
+  turn, the suspect agent receives these commitments as `"you previously told
+  this detective: …"` in the system prompt — NOT the raw transcript. That
+  keeps suspects consistent with their own lies (the deception policy
+  actually has teeth across turns) and stays cheap.
+
+  Implementation sketch: a `Commitment` Pydantic model; an `extract_commitments`
+  call (structured-output LLM) at the end of `apply_interrogate`; a
+  `suspect_commitments: dict[str, list[Commitment]]` field on `GameState`;
+  prompt rendering in `_render_system`.
+
+- **M10 — `show <suspect> <clue_id>` tool.** Confront a suspect with a
+  specific clue. The suspect agent receives the clue text in addition to the
+  question and is prompted to react. This is where commitments pay off:
+  showing a clue that contradicts a prior commitment is the moment the
+  deception policy is supposed to crack. Without M9, this command is just
+  a fancier `ask`.
+
+- **M11 — Scripted "beats".** A small library of mid-case events (a second
+  body, a recantation, a new room opening) the generator schedules into the
+  bible at fixed turn offsets. The game loop checks for due beats each turn
+  and applies them. Gives the case a second act.
+
 ## Open questions
 
 - **Streaming vs. batch suspect responses?** Streaming feels better in the CLI but complicates the LLM-judge. Probably batch in v1, stream later.
-- **Memory across turns within one interrogation?** Suspects should remember what they've already told the player this session, or they'll repeat themselves. Likely a short rolling buffer per suspect, stored in `GameState`, kept out of the RAG retrieval scope.
 - **3B model quality floor.** May need few-shot examples in the suspect prompt to keep the small model in character. Decide after M4 smoke tests.

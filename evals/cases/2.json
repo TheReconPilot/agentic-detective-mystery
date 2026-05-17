@@ -1,81 +1,62 @@
 {
   "seed": 2,
   "victim": {
-    "name": "Lady Eleanor",
-    "role": "Hostess",
-    "location_of_death_id": "library",
+    "name": "Lady Eleanor Blackwood",
+    "role": "Hostess of the Manor",
+    "location_of_death_id": "blackwood-mansion-library",
     "time_of_death": 180
   },
   "suspects": [
     {
-      "id": "mr_brown",
-      "name": "Mr. Brown",
+      "id": "charles_harper",
+      "name": "Charles Harper",
       "archetype": "Butler",
       "motive": null,
       "alibis": [
         {
-          "location_id": "kitchen",
+          "location_id": "blackwood-mansion-kitchen",
           "time_window": [
             160,
-            200
+            190
           ],
           "is_true": false,
           "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "library_was_entered_by_lockpick"
-      ],
-      "deception_policy": "Mr. Brown will lie about his whereabouts during the time of death."
+      "knowledge": [],
+      "deception_policy": "Charles avoids eye contact and fidgets when questioned about the evening.",
+      "voice": "I was in the kitchen preparing snacks, sir. The kitchen is a sanctuary of order."
     },
     {
-      "id": "miss_white",
-      "name": "Miss White",
-      "archetype": "Nurse",
+      "id": "anna_smith",
+      "name": "Anna Smith",
+      "archetype": "Housekeeper",
       "motive": null,
       "alibis": [
         {
-          "location_id": "bedroom",
+          "location_id": "blackwood-mansion-library",
           "time_window": [
             170,
-            220
+            200
           ],
           "is_true": true,
-          "corroborating_witness_id": null
+          "corroborating_witness_id": "john_doe"
         }
       ],
       "knowledge": [],
-      "deception_policy": "Miss White will truthfully recount her actions."
+      "deception_policy": "Anna speaks openly but deflects any questions about the murder weapon.",
+      "voice": "I was dusting books in the library, sir. I do love old books; they're like time machines."
     },
     {
-      "id": "dr_green",
-      "name": "Dr. Green",
-      "archetype": "Doctor",
+      "id": "john_doe",
+      "name": "John Doe",
+      "archetype": "Guest",
       "motive": null,
       "alibis": [
         {
-          "location_id": "garden",
+          "location_id": "blackwood-mansion-library",
           "time_window": [
-            150,
-            240
-          ],
-          "is_true": true,
-          "corroborating_witness_id": null
-        }
-      ],
-      "knowledge": [],
-      "deception_policy": "Dr. Green will truthfully recount his actions."
-    },
-    {
-      "id": "mrs_peacock",
-      "name": "Mrs. Peacock",
-      "archetype": "Socialite",
-      "motive": null,
-      "alibis": [
-        {
-          "location_id": "ballroom",
-          "time_window": [
-            175,
+            170,
             200
           ],
           "is_true": true,
@@ -83,155 +64,136 @@
         }
       ],
       "knowledge": [],
-      "deception_policy": "Mrs. Peacock will truthfully recount her actions."
+      "deception_policy": "John is vague about his whereabouts but insists on the truth.",
+      "voice": "I was reading a book in the library, sir. I can't remember what it was about, though."
     },
     {
-      "id": "prof_plum",
-      "name": "Professor Plum",
-      "archetype": "Professor",
+      "id": "susan_ray",
+      "name": "Susan Ray",
+      "archetype": "Cook",
       "motive": null,
       "alibis": [
         {
-          "location_id": "study",
+          "location_id": "blackwood-mansion-kitchen",
           "time_window": [
-            150,
-            240
+            160,
+            200
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
       "knowledge": [],
-      "deception_policy": "Professor Plum will truthfully recount his actions."
+      "deception_policy": "Susan is overly friendly and offers too many details about the kitchen.",
+      "voice": "I was in the kitchen all evening, sir. I can't believe anyone would think me capable of such a deed."
+    },
+    {
+      "id": "thomas_brown",
+      "name": "Thomas Brown",
+      "archetype": "Gardener",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "blackwood-mansion-garden",
+          "time_window": [
+            160,
+            200
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Thomas changes the subject to gardening when questioned about his movements.",
+      "voice": "I was out in the garden all evening, sir. The roses are my pride and joy."
     }
   ],
   "locations": [
     {
-      "id": "library",
-      "name": "Library",
-      "description": "The library where the murder occurred.",
+      "id": "blackwood-mansion-library",
+      "name": "Blackwood Mansion Library",
+      "description": "A room filled with ancient books and a grand fireplace.",
       "connected_location_ids": [
-        "kitchen",
-        "study"
+        "blackwood-mansion-kitchen",
+        "blackwood-mansion-garden"
       ]
     },
     {
-      "id": "kitchen",
-      "name": "Kitchen",
-      "description": "Where Mr. Brown was supposedly found but not actually present.",
+      "id": "blackwood-mansion-kitchen",
+      "name": "Blackwood Mansion Kitchen",
+      "description": "The heart of the household, filled with cooking smells and utensils.",
       "connected_location_ids": [
-        "library",
-        "dining_room"
+        "blackwood-mansion-library",
+        "blackwood-mansion-garden"
       ]
     },
     {
-      "id": "bedroom",
-      "name": "Bedroom",
-      "description": "Where Miss White was resting during the time of death.",
-      "connected_location_ids": []
-    },
-    {
-      "id": "garden",
-      "name": "Garden",
-      "description": "Dr. Green's alibi location, where he claims to have been during the murder.",
+      "id": "blackwood-mansion-garden",
+      "name": "Blackwood Mansion Garden",
+      "description": "A lush garden with a variety of flowers and trees.",
       "connected_location_ids": [
-        "ballroom"
-      ]
-    },
-    {
-      "id": "study",
-      "name": "Study",
-      "description": "Professor Plum was in his study as an alibi.",
-      "connected_location_ids": [
-        "library",
-        "dining_room"
-      ]
-    },
-    {
-      "id": "dining_room",
-      "name": "Dining Room",
-      "description": "A connecting room between several locations.",
-      "connected_location_ids": [
-        "kitchen",
-        "study"
-      ]
-    },
-    {
-      "id": "ballroom",
-      "name": "Ballroom",
-      "description": "Mrs. Peacock was in the ballroom during the murder time.",
-      "connected_location_ids": [
-        "garden"
+        "blackwood-mansion-library",
+        "blackwood-mansion-kitchen"
       ]
     }
   ],
   "clues": [
     {
-      "id": "lockpick",
-      "location_id": "library",
-      "description": "A lockpick found near the body, suggesting forced entry.",
+      "id": "blood_stain_library",
+      "location_id": "blackwood-mansion-library",
+      "description": "A small bloodstain on the carpet near the fireplace.",
       "incriminates_suspect_ids": [
-        "mr_brown"
+        "charles_harper"
       ]
     },
     {
-      "id": "notebook",
-      "location_id": "kitchen",
-      "description": "Miss White's notebook with unrelated notes, a red herring.",
+      "id": "footprints_garden",
+      "location_id": "blackwood-mansion-garden",
+      "description": "Footprints leading from the garden to the library door.",
       "incriminates_suspect_ids": []
     },
     {
-      "id": "medical_kit",
-      "location_id": "garden",
-      "description": "Dr. Green's medical kit, found but unused.",
-      "incriminates_suspect_ids": []
-    },
-    {
-      "id": "letter",
-      "location_id": "bedroom",
-      "description": "A letter addressed to Miss White, irrelevant to the crime scene.",
-      "incriminates_suspect_ids": []
-    },
-    {
-      "id": "diary_entry",
-      "location_id": "study",
-      "description": "Professor Plum's diary entry mentioning a secret meeting with Lady Eleanor.",
+      "id": "broken_glass_kitchen",
+      "location_id": "blackwood-mansion-kitchen",
+      "description": "A broken wine glass on the floor near a cupboard.",
       "incriminates_suspect_ids": [
-        "prof_plum"
+        "susan_ray"
+      ]
+    },
+    {
+      "id": "mysterious_note_library",
+      "location_id": "blackwood-mansion-library",
+      "description": "A note with threatening words written in red ink, found under a book.",
+      "incriminates_suspect_ids": [
+        "charles_harper",
+        "thomas_brown"
+      ]
+    },
+    {
+      "id": "empty_vial_kitchen",
+      "location_id": "blackwood-mansion-kitchen",
+      "description": "An empty vial with a poison label.",
+      "incriminates_suspect_ids": [
+        "charles_harper",
+        "anna_smith"
+      ]
+    },
+    {
+      "id": "closed_window_garden",
+      "location_id": "blackwood-mansion-garden",
+      "description": "A window that was previously open but now closed.",
+      "incriminates_suspect_ids": [
+        "thomas_brown"
       ]
     }
   ],
-  "killer_id": "mr_brown",
+  "killer_id": "charles_harper",
   "canonical_timeline": [
     {
-      "time": 150,
-      "actor_id": "dr_green",
-      "location_id": "garden",
-      "description": "Dr. Green starts his evening in the garden."
-    },
-    {
-      "time": 160,
-      "actor_id": "mr_brown",
-      "location_id": "kitchen",
-      "description": "Mr. Brown enters the kitchen but later lies about being here."
-    },
-    {
       "time": 175,
-      "actor_id": "mrs_peacock",
-      "location_id": "ballroom",
-      "description": "Mrs. Peacock dances in the ballroom."
-    },
-    {
-      "time": 180,
-      "actor_id": "victim",
-      "location_id": "library",
-      "description": "Lady Eleanor is found dead in the library."
-    },
-    {
-      "time": 200,
-      "actor_id": "mr_brown",
-      "location_id": "kitchen",
-      "description": "Mr. Brown claims to have been here until now, but he was lying."
+      "actor_id": "charles_harper",
+      "location_id": "blackwood-mansion-library",
+      "description": "Charles sneaks into the library and attacks Lady Eleanor with a concealed weapon."
     }
   ]
 }

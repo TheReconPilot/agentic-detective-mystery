@@ -1,240 +1,219 @@
 {
   "seed": 13,
   "victim": {
-    "name": "Lady Margaret Hargrove",
-    "role": "Socialite",
-    "location_of_death_id": "study",
-    "time_of_death": 205
+    "name": "Margaret Wilson",
+    "role": "Estate Manager",
+    "location_of_death_id": "library",
+    "time_of_death": 240
   },
   "suspects": [
     {
-      "id": "mrs_jones",
-      "name": "Mrs. Eliza Jones",
-      "archetype": "Scheming Housekeeper",
+      "id": "thomas_carson",
+      "name": "Thomas Carson",
+      "archetype": "Rival Manager",
       "motive": null,
       "alibis": [
         {
-          "location_id": "kitchen",
+          "location_id": "billiards_room",
           "time_window": [
-            195,
-            208
+            200,
+            300
           ],
           "is_true": false,
           "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "motive_for_murder"
-      ],
-      "deception_policy": "Mrs. Jones will lie about her whereabouts to protect herself and avoid suspicion."
+      "knowledge": [],
+      "deception_policy": "Thomas lies about his whereabouts to cover up his involvement.",
+      "voice": "Thomas speaks in long, complicated sentences with a slight stutter. He avoids talking about the estate's financial difficulties."
     },
     {
-      "id": "mr_brown",
-      "name": "Mr. Thomas Brown",
-      "archetype": "Jealous Lover",
+      "id": "ella_brown",
+      "name": "Ella Brown",
+      "archetype": "Loyal Employee",
       "motive": null,
       "alibis": [
         {
-          "location_id": "library",
+          "location_id": "kitchen",
           "time_window": [
-            180,
-            215
-          ],
-          "is_true": true,
-          "corroborating_witness_id": "miss_smythe"
-        }
-      ],
-      "knowledge": [
-        "motive_for_murder"
-      ],
-      "deception_policy": "Mr. Brown will be truthful to avoid implicating himself unnecessarily."
-    },
-    {
-      "id": "dr_smith",
-      "name": "Dr. William Smith",
-      "archetype": "Cynical Doctor",
-      "motive": null,
-      "alibis": [
-        {
-          "location_id": "bedroom",
-          "time_window": [
-            190,
-            210
+            200,
+            300
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "motive_for_murder"
-      ],
-      "deception_policy": "Dr. Smith will remain neutral and not incriminate himself if there is any doubt."
+      "knowledge": [],
+      "deception_policy": "Ella tells the truth to protect her reputation.",
+      "voice": "Ella talks in a cheerful tone with frequent laughter. She avoids discussing Margaret's personal life."
     },
     {
-      "id": "miss_smythe",
-      "name": "Miss Emily Smythe",
-      "archetype": "Innocent Secretary",
+      "id": "robert_dunn",
+      "name": "Robert Dunn",
+      "archetype": "Sleuthing Butler",
       "motive": null,
       "alibis": [
         {
-          "location_id": "library",
+          "location_id": "study",
           "time_window": [
-            180,
-            215
+            200,
+            300
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "none"
-      ],
-      "deception_policy": "Miss Smythe will be honest as she has nothing to hide."
+      "knowledge": [],
+      "deception_policy": "Robert is honest but tends to embellish details.",
+      "voice": "Robert speaks in a formal manner with perfect grammar. He avoids mentioning his own private matters."
     },
     {
-      "id": "mr_green",
-      "name": "Mr. Henry Green",
-      "archetype": "Suspicious Guest",
+      "id": "samantha_green",
+      "name": "Samantha Green",
+      "archetype": "Mysterious Guest",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "dining_room",
+          "time_window": [
+            200,
+            300
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Samantha is evasive and vague.",
+      "voice": "Samantha speaks in short, cryptic sentences. She avoids discussing her past."
+    },
+    {
+      "id": "charles_hill",
+      "name": "Charles Hill",
+      "archetype": "Reclusive Heir",
       "motive": null,
       "alibis": [
         {
           "location_id": "garden",
           "time_window": [
-            195,
-            208
+            200,
+            300
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "none"
-      ],
-      "deception_policy": "Mr. Green will be truthful but keep to himself."
+      "knowledge": [],
+      "deception_policy": "Charles sticks to the facts but is very reticent.",
+      "voice": "Charles speaks in a monotone with long pauses. He avoids mentioning his inheritance."
     }
   ],
   "locations": [
     {
-      "id": "study",
-      "name": "Study",
-      "description": "A dark, cluttered room with a large oak desk and shelves filled with books.",
+      "id": "library",
+      "name": "Library",
+      "description": "A vast room filled with shelves of ancient books and cozy reading nooks.",
       "connected_location_ids": [
-        "library",
-        "kitchen"
+        "billiards_room",
+        "study"
       ]
     },
     {
-      "id": "library",
-      "name": "Library",
-      "description": "An expansive room lined with floor-to-ceiling bookshelves and comfortable armchairs.",
+      "id": "billiards_room",
+      "name": "Billiards Room",
+      "description": "An elegant room with a green felt table and polished cues, often used for social gatherings.",
       "connected_location_ids": [
-        "study",
-        "bedroom"
+        "library",
+        "kitchen",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "A dark study filled with leather-bound books and personal artifacts of the estate owner.",
+      "connected_location_ids": [
+        "library",
+        "garden"
       ]
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "description": "A spacious, well-equipped kitchen with a large central island and antique appliances.",
+      "description": "The heart of the house, where meals are prepared and staff gather.",
       "connected_location_ids": [
-        "study",
-        "garden"
+        "billiards_room",
+        "dining_room"
       ]
     },
     {
-      "id": "bedroom",
-      "name": "Bedroom",
-      "description": "Lady Margaret's private room, decorated in rich fabrics and elegant furnishings.",
+      "id": "dining_room",
+      "name": "Dining Room",
+      "description": "A grand room with a long table and elegant dining ware.",
       "connected_location_ids": [
-        "library"
+        "billiards_room",
+        "kitchen"
       ]
     },
     {
       "id": "garden",
       "name": "Garden",
-      "description": "A beautifully manicured garden with a winding path and a small fountain.",
+      "description": "An expansive garden with lush greenery, perfect for quiet contemplation or private conversations.",
       "connected_location_ids": [
-        "kitchen",
-        "conservatory"
-      ]
-    },
-    {
-      "id": "conservatory",
-      "name": "Conservatory",
-      "description": "A glass-enclosed room filled with exotic plants and comfortable seating.",
-      "connected_location_ids": [
-        "garden"
+        "study"
       ]
     }
   ],
   "clues": [
     {
-      "id": "study_letter",
-      "location_id": "study",
-      "description": "A threatening letter addressed to Lady Margaret, dated the day of her death.",
-      "incriminates_suspect_ids": [
-        "mrs_jones"
-      ]
-    },
-    {
-      "id": "library_book",
+      "id": "clue_1",
       "location_id": "library",
-      "description": "An open book on the desk with a bookmark pointing to a page describing poison.",
+      "description": "A torn piece of paper with a name and address scrawled on it, incriminating thomas_carson.",
       "incriminates_suspect_ids": [
-        "dr_smith"
+        "thomas_carson"
       ]
     },
     {
-      "id": "kitchen_utensil",
+      "id": "clue_2",
+      "location_id": "billiards_room",
+      "description": "A broken cue stick with traces of poison residue.",
+      "incriminates_suspect_ids": [
+        "samantha_green",
+        "robert_dunn"
+      ]
+    },
+    {
+      "id": "clue_3",
+      "location_id": "study",
+      "description": "A letter from an unknown sender threatening Margaret's position at the estate.",
+      "incriminates_suspect_ids": [
+        "thomas_carson",
+        "charles_hill"
+      ]
+    },
+    {
+      "id": "clue_4",
       "location_id": "kitchen",
-      "description": "A blood-stained knife hidden under the sink.",
+      "description": "A partially consumed pastry with unusual ingredients known to be toxic.",
       "incriminates_suspect_ids": [
-        "mrs_jones",
-        "mr_green"
-      ]
-    },
-    {
-      "id": "bedroom_potion",
-      "location_id": "bedroom",
-      "description": "An unlabeled vial of clear liquid on Lady Margaret's dresser.",
-      "incriminates_suspect_ids": [
-        "dr_smith"
-      ]
-    },
-    {
-      "id": "garden_tool",
-      "location_id": "garden",
-      "description": "A garden spade with mud caked around the handle.",
-      "incriminates_suspect_ids": [
-        "mr_green"
+        "ella_brown",
+        "samantha_green"
       ]
     }
   ],
-  "killer_id": "mrs_jones",
+  "killer_id": "thomas_carson",
   "canonical_timeline": [
     {
-      "time": 180,
-      "actor_id": "miss_smythe",
+      "time": 0,
+      "actor_id": "thomas_carson",
+      "location_id": "billiards_room",
+      "description": "Thomas starts the evening at the billiards room, plotting his next move."
+    },
+    {
+      "time": 200,
+      "actor_id": "margaret_wilson",
       "location_id": "library",
-      "description": "Miss Emily Smythe arrives at the library to retrieve a book."
-    },
-    {
-      "time": 195,
-      "actor_id": "mrs_jones",
-      "location_id": "kitchen",
-      "description": "Mrs. Eliza Jones is last seen entering the kitchen with a suspicious look on her face."
-    },
-    {
-      "time": 205,
-      "actor_id": "lady_margaret_hargrove",
-      "location_id": "study",
-      "description": "Lady Margaret Hargrove is found dead in the study, poisoned by an unknown substance."
-    },
-    {
-      "time": 210,
-      "actor_id": "dr_smith",
-      "location_id": "bedroom",
-      "description": "Dr. William Smith enters Lady Margaret's bedroom to perform a routine checkup."
+      "description": "Margaret is found dead in the library, poisoned by an unknown assailant."
     }
   ]
 }

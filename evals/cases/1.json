@@ -1,235 +1,231 @@
 {
   "seed": 1,
   "victim": {
-    "name": "Mrs. Elizabeth Grey",
-    "role": "Homeowner and Hostess",
+    "name": "Lady Evelyn",
+    "role": "Matriarch",
     "location_of_death_id": "library",
-    "time_of_death": 360
+    "time_of_death": 420
   },
   "suspects": [
     {
-      "id": "mr_alan_wilson",
-      "name": "Mr. Alan Wilson",
-      "archetype": "Jealous Husband",
+      "id": "suspect_a",
+      "name": "Sir Reginald",
+      "archetype": "Gallant Gentleman",
       "motive": null,
       "alibis": [
         {
-          "location_id": "garden",
+          "location_id": "library",
           "time_window": [
-            345,
-            370
+            405,
+            435
           ],
           "is_true": false,
-          "corroborating_witness_id": "mrs_clara_brown"
+          "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "clue_notebook_1",
-        "clue_letter_2"
-      ],
-      "deception_policy": "Maintains innocence and suspicion on others."
+      "knowledge": [],
+      "deception_policy": "Always lie when questioned.",
+      "voice": "Reginald speaks in a clipped manner with perfect enunciation, often interjecting 'Indeed.' He avoids discussing his military service."
     },
     {
-      "id": "dr_robert_jones",
-      "name": "Dr. Robert Jones",
-      "archetype": "Suspicious Doctor",
+      "id": "suspect_b",
+      "name": "Lady Charlotte",
+      "archetype": "Bitter Spinster",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            405,
+            435
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Only lies if she feels threatened.",
+      "voice": "Charlotte speaks in a hushed tone, often sighing heavily. She avoids talking about her past romantic relationships."
+    },
+    {
+      "id": "suspect_c",
+      "name": "Mr. Thomas",
+      "archetype": "Crafty Servant",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "greenhouse",
+          "time_window": [
+            405,
+            435
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Will lie to protect himself.",
+      "voice": "Thomas speaks in a low, conspiratorial voice, often starting sentences with 'You won't believe this...'. He avoids discussing the recent theft of silverware."
+    },
+    {
+      "id": "suspect_d",
+      "name": "Miss Isabella",
+      "archetype": "Naive Young Lady",
       "motive": null,
       "alibis": [
         {
           "location_id": "dining_room",
           "time_window": [
-            345,
-            370
+            405,
+            435
           ],
           "is_true": true,
-          "corroborating_witness_id": "mr_charles_green"
+          "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "clue_footprints_1"
-      ],
-      "deception_policy": "Acts professionally but avoids direct questions."
+      "knowledge": [],
+      "deception_policy": "Always tells the truth.",
+      "voice": "Isabella speaks in a cheerful tone with an occasional giggle. She avoids discussing her secret crush on Sir Reginald."
     },
     {
-      "id": "mrs_harriet_smith",
-      "name": "Mrs. Harriet Smith",
-      "archetype": "Nervous Neighbor",
+      "id": "suspect_e",
+      "name": "Mrs. Margaret",
+      "archetype": "Mysterious Visitor",
       "motive": null,
       "alibis": [
         {
-          "location_id": "study",
+          "location_id": "bedroom",
           "time_window": [
-            345,
-            370
+            405,
+            435
           ],
           "is_true": true,
-          "corroborating_witness_id": "mrs_clara_brown"
+          "corroborating_witness_id": null
         }
       ],
-      "knowledge": [
-        "clue_poison_2"
-      ],
-      "deception_policy": "Expresses concern and offers help."
-    },
-    {
-      "id": "mr_charles_green",
-      "name": "Mr. Charles Green",
-      "archetype": "Bumbling Butler",
-      "motive": null,
-      "alibis": [
-        {
-          "location_id": "dining_room",
-          "time_window": [
-            345,
-            370
-          ],
-          "is_true": true,
-          "corroborating_witness_id": "dr_robert_jones"
-        }
-      ],
-      "knowledge": [
-        "clue_scarf_1"
-      ],
-      "deception_policy": "Provides vague and often contradictory statements."
-    },
-    {
-      "id": "mrs_clara_brown",
-      "name": "Mrs. Clara Brown",
-      "archetype": "Gossiping Gardener",
-      "motive": null,
-      "alibis": [
-        {
-          "location_id": "garden",
-          "time_window": [
-            345,
-            370
-          ],
-          "is_true": true,
-          "corroborating_witness_id": "mr_alan_wilson"
-        },
-        {
-          "location_id": "study",
-          "time_window": [
-            345,
-            370
-          ],
-          "is_true": true,
-          "corroborating_witness_id": "mrs_harriet_smith"
-        }
-      ],
-      "knowledge": [
-        "clue_notebook_2",
-        "clue_letter_1"
-      ],
-      "deception_policy": "Talks excessively and tries to steer conversations."
+      "knowledge": [],
+      "deception_policy": "Will lie if it benefits her.",
+      "voice": "Margaret speaks in a whispery tone with an occasional cough. She avoids discussing the reason for her sudden visit."
     }
   ],
   "locations": [
     {
       "id": "library",
       "name": "Library",
-      "description": "The room where Mrs. Grey was found.",
+      "description": "The grand library, filled with leather-bound books and dark wooden furniture.",
       "connected_location_ids": [
-        "dining_room",
-        "study"
-      ]
-    },
-    {
-      "id": "dining_room",
-      "name": "Dining Room",
-      "description": "A large dining area with a long table.",
-      "connected_location_ids": [
-        "library",
-        "kitchen"
-      ]
-    },
-    {
-      "id": "study",
-      "name": "Study",
-      "description": "Mr. Wilson's room where he spends most of his time.",
-      "connected_location_ids": [
-        "garden",
-        "library"
-      ]
-    },
-    {
-      "id": "garden",
-      "name": "Garden",
-      "description": "A well-kept garden with many paths and benches.",
-      "connected_location_ids": [
-        "study",
-        "kitchen"
+        "kitchen",
+        "bedroom"
       ]
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "description": "The room where meals are prepared.",
+      "description": "A cozy kitchen where the family often gathers for meals.",
       "connected_location_ids": [
-        "dining_room",
-        "garden"
+        "library",
+        "greenhouse"
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "description": "Lady Evelyn's personal bedroom, decorated in rich fabrics and plush furnishings.",
+      "connected_location_ids": [
+        "library",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "greenhouse",
+      "name": "Greenhouse",
+      "description": "A warm greenhouse filled with exotic plants and flowers.",
+      "connected_location_ids": [
+        "kitchen",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "dining_room",
+      "name": "Dining Room",
+      "description": "An elegant dining room where formal dinners are held.",
+      "connected_location_ids": [
+        "bedroom",
+        "greenhouse"
       ]
     }
   ],
   "clues": [
     {
-      "id": "clue_notebook_1",
-      "location_id": "study",
-      "description": "A notebook with detailed notes about Mrs. Grey's habits.",
-      "incriminates_suspect_ids": [
-        "mr_alan_wilson"
-      ]
-    },
-    {
-      "id": "clue_letter_2",
-      "location_id": "garden",
-      "description": "An envelope containing a threatening letter addressed to Mr. Wilson.",
-      "incriminates_suspect_ids": [
-        "mr_alan_wilson"
-      ]
-    },
-    {
-      "id": "clue_footprints_1",
-      "location_id": "dining_room",
-      "description": "Footprints leading from the dining room towards the library.",
-      "incriminates_suspect_ids": []
-    },
-    {
-      "id": "clue_poison_2",
-      "location_id": "study",
-      "description": "A vial of poison with traces of fingerprints matching Mrs. Smith's.",
-      "incriminates_suspect_ids": [
-        "mrs_harriet_smith"
-      ]
-    },
-    {
-      "id": "clue_scarf_1",
+      "id": "library_clue_1",
       "location_id": "library",
-      "description": "A scarf found near the body, bearing Mr. Green's distinctive pattern.",
+      "description": "A torn piece of Lady Evelyn's lace handkerchief near the bookshelf.",
       "incriminates_suspect_ids": [
-        "mr_charles_green"
+        "suspect_a"
       ]
     },
     {
-      "id": "clue_notebook_2",
-      "location_id": "study",
-      "description": "Another notebook with a torn page mentioning Mrs. Grey's secret meeting time.",
-      "incriminates_suspect_ids": []
+      "id": "kitchen_clue_2",
+      "location_id": "kitchen",
+      "description": "An empty bottle of poison next to a half-empty glass on the kitchen table.",
+      "incriminates_suspect_ids": [
+        "suspect_b",
+        "suspect_c"
+      ]
+    },
+    {
+      "id": "bedroom_clue_3",
+      "location_id": "bedroom",
+      "description": "A letter addressed to 'My dearest' hidden under a book on the bedside table.",
+      "incriminates_suspect_ids": [
+        "suspect_d",
+        "suspect_e"
+      ]
+    },
+    {
+      "id": "greenhouse_clue_4",
+      "location_id": "greenhouse",
+      "description": "A torn piece of fabric matching Sir Reginald's jacket hanging on a greenhouse door.",
+      "incriminates_suspect_ids": [
+        "suspect_a",
+        "suspect_c"
+      ]
+    },
+    {
+      "id": "dining_room_clue_5",
+      "location_id": "dining_room",
+      "description": "A set of muddy footprints leading from the dining room to the bedroom.",
+      "incriminates_suspect_ids": [
+        "suspect_d",
+        "suspect_e"
+      ]
     }
   ],
-  "killer_id": "mr_alan_wilson",
+  "killer_id": "suspect_a",
   "canonical_timeline": [
     {
-      "time": 345,
-      "actor_id": "mr_alan_wilson",
-      "location_id": "study",
-      "description": "Mr. Wilson is seen entering the library, carrying a small vial."
+      "time": 405,
+      "actor_id": "suspect_a",
+      "location_id": "library",
+      "description": "Sir Reginald enters the library and retrieves a small vial from inside a book."
     },
     {
-      "time": 360,
-      "actor_id": "mr_alan_wilson",
+      "time": 410,
+      "actor_id": "victim",
       "location_id": "library",
-      "description": "Mrs. Grey is found dead in the library at this time."
+      "description": "Lady Evelyn, who is reading in her favorite armchair, notices Sir Reginald's presence and greets him warmly."
+    },
+    {
+      "time": 420,
+      "actor_id": "suspect_a",
+      "location_id": "library",
+      "description": "Sir Reginald approaches Lady Evelyn with the vial, claiming it to be a new remedy for her ailments. He pours some of its contents into her glass and hands it to her."
+    },
+    {
+      "time": 425,
+      "actor_id": "victim",
+      "location_id": "library",
+      "description": "Lady Evelyn drinks the liquid, unaware of its true nature."
     }
   ]
 }

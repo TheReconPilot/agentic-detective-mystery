@@ -1,208 +1,200 @@
 {
   "seed": 11,
   "victim": {
-    "name": "Lady Eleanor Pembroke",
-    "role": "wealthy widow",
-    "location_of_death_id": "ballroom",
-    "time_of_death": 370
+    "name": "Lady Eleanor Wexford",
+    "role": "Elderly aristocrat and benefactress.",
+    "location_of_death_id": "manor_hall",
+    "time_of_death": 205
   },
   "suspects": [
     {
-      "id": "the_spy",
-      "name": "Sir Richard Ashcroft",
-      "archetype": "foreign spy",
+      "id": "reverend_thomas_barnaby",
+      "name": "Reverend Thomas Barnaby",
+      "archetype": "Religious zealot with a secret.",
       "motive": null,
       "alibis": [
         {
-          "location_id": "library",
+          "location_id": "church_crypt",
           "time_window": [
-            350,
-            410
+            195,
+            215
           ],
           "is_true": false,
           "corroborating_witness_id": null
         }
       ],
       "knowledge": [],
-      "deception_policy": "Always lie about any incriminating knowledge."
+      "deception_policy": "Lies about his whereabouts and motives to conceal a dark past.",
+      "voice": "Reverend Barnaby speaks in hushed tones, with an occasional 'my dear,' and avoids discussing the church's recent scandals."
     },
     {
-      "id": "the_heiress",
-      "name": "Miss Amelia Whitmore",
-      "archetype": "naive heiress",
+      "id": "mrs_vernon_shepherd",
+      "name": "Mrs. Vernon Shepherd",
+      "archetype": "Gossiping socialite.",
       "motive": null,
       "alibis": [
         {
-          "location_id": "garden",
+          "location_id": "garden_pavilion",
           "time_window": [
-            360,
-            420
+            195,
+            210
           ],
           "is_true": true,
-          "corroborating_witness_id": "the_gardener"
+          "corroborating_witness_id": "james_gardner"
         }
       ],
       "knowledge": [],
-      "deception_policy": "Always tell the truth."
+      "deception_policy": "Semi-truths to mislead investigators with her social connections.",
+      "voice": "Mrs. Shepherd speaks in rapid bursts, often interjecting 'oh dear,' and tends to steer clear of any talk about her family's financial troubles."
     },
     {
-      "id": "the_blackmailer",
-      "name": "Mr. Edward Blackwell",
-      "archetype": "blackmailer",
+      "id": "dr_eric_harper",
+      "name": "Dr. Eric Harper",
+      "archetype": "Rival physician with a grudge.",
       "motive": null,
       "alibis": [
         {
-          "location_id": "billiards_room",
+          "location_id": "library",
           "time_window": [
-            350,
-            410
-          ],
-          "is_true": true,
-          "corroborating_witness_id": null
-        }
-      ],
-      "knowledge": [],
-      "deception_policy": "Lie to protect one's reputation."
-    },
-    {
-      "id": "the_lady_in_red",
-      "name": "Lady Margaret Hamilton",
-      "archetype": "jealous rival",
-      "motive": null,
-      "alibis": [
-        {
-          "location_id": "conservatory",
-          "time_window": [
-            360,
-            420
+            195,
+            205
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
       "knowledge": [],
-      "deception_policy": "Lie to protect one's interests."
+      "deception_policy": "Downplays his professional rivalry to appear cooperative.",
+      "voice": "Dr. Harper speaks in a calm, measured tone with an occasional 'you see,' and avoids discussing the recent medical malpractice lawsuit against him."
     },
     {
-      "id": "the_gardener",
-      "name": "Mr. James Thompson",
-      "archetype": "innocent servant",
+      "id": "james_gardner",
+      "name": "James Gardner",
+      "archetype": "Solicitor with personal vendetta.",
       "motive": null,
       "alibis": [
         {
-          "location_id": "garden",
+          "location_id": "garden_pavilion",
           "time_window": [
-            360,
-            420
+            195,
+            210
           ],
           "is_true": true,
           "corroborating_witness_id": null
         }
       ],
       "knowledge": [],
-      "deception_policy": "Always tell the truth."
+      "deception_policy": "Barely conceals his anger towards Lady Eleanor to appear innocent.",
+      "voice": "James Gardner speaks in a low, controlled voice with an occasional 'damn,' and tends to avoid any discussion about his legal battles."
+    },
+    {
+      "id": "madame_elise_lavigne",
+      "name": "Madame Elise Lavigne",
+      "archetype": "Mysterious French medium.",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "tower_study",
+          "time_window": [
+            195,
+            210
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [],
+      "deception_policy": "Claims to have been communicating with spirits at the time of murder.",
+      "voice": "Madame Elise speaks in a soft, melodious voice sprinkled with French phrases and often avoids discussing her past in Paris."
     }
   ],
   "locations": [
     {
-      "id": "ballroom",
-      "name": "Ballroom",
-      "description": "The grand room where Lady Eleanor hosted her guests.",
-      "connected_location_ids": [
-        "library",
-        "conservatory"
-      ]
+      "id": "manor_hall",
+      "name": "Manor Hall",
+      "description": "The grand entrance of Lady Eleanor's manor, adorned with portraits and antiques.",
+      "connected_location_ids": []
+    },
+    {
+      "id": "garden_pavilion",
+      "name": "Garden Pavilion",
+      "description": "A small wooden structure in the garden where guests often gather for tea.",
+      "connected_location_ids": []
+    },
+    {
+      "id": "church_crypt",
+      "name": "Church Crypt",
+      "description": "An ancient crypt beneath the town church, rarely used and off-limits to visitors.",
+      "connected_location_ids": []
     },
     {
       "id": "library",
       "name": "Library",
-      "description": "A quiet, dusty room filled with books and secrets.",
-      "connected_location_ids": [
-        "ballroom",
-        "billiards_room"
-      ]
+      "description": "Lady Eleanor's personal library filled with books on history and genealogy.",
+      "connected_location_ids": []
     },
     {
-      "id": "garden",
-      "name": "Garden",
-      "description": "A serene outdoor space where guests often stroll at night.",
-      "connected_location_ids": [
-        "conservatory"
-      ]
-    },
-    {
-      "id": "billiards_room",
-      "name": "Billiards Room",
-      "description": "Where gentlemen gather to play a game of chance and strategy.",
-      "connected_location_ids": [
-        "library"
-      ]
-    },
-    {
-      "id": "conservatory",
-      "name": "Conservatory",
-      "description": "A greenhouse filled with exotic plants and fragrant flowers.",
-      "connected_location_ids": [
-        "ballroom",
-        "garden"
-      ]
+      "id": "tower_study",
+      "name": "Tower Study",
+      "description": "A small study in the manor's tower, usually reserved for Lady Eleanor’s private meetings.",
+      "connected_location_ids": []
     }
   ],
   "clues": [
     {
-      "id": "bloody_handkerchief",
+      "id": "broken_vase_hallway",
+      "location_id": "manor_hall",
+      "description": "A broken vase with a piece of fabric from Reverend Barnaby's cloak caught in the shards.",
+      "incriminates_suspect_ids": [
+        "reverend_thomas_barnaby"
+      ]
+    },
+    {
+      "id": "strange_smell_library",
       "location_id": "library",
-      "description": "A handkerchief stained with blood. It has the initials 'R.A.' embroidered on it.",
+      "description": "A faint smell of chemicals, possibly from a poison used by Dr. Harper.",
       "incriminates_suspect_ids": [
-        "the_spy"
+        "dr_eric_harper"
       ]
     },
     {
-      "id": "love_letter",
-      "location_id": "ballroom",
-      "description": "A passionate love letter addressed to Lady Eleanor, suggesting a secret affair.",
+      "id": "garden_footprints",
+      "location_id": "garden_pavilion",
+      "description": "Footprints leading to and from the garden pavilion where James Gardner was supposedly alibi-ed.",
       "incriminates_suspect_ids": [
-        "the_lady_in_red",
-        "the_blackmailer"
+        "james_gardner"
       ]
     },
     {
-      "id": "blackmail_note",
-      "location_id": "billiards_room",
-      "description": "A threatening note demanding money from Lady Eleanor, signed by 'E.B.'.",
+      "id": "spirit_note_tower_study",
+      "location_id": "tower_study",
+      "description": "A mysterious note in Madame Elise's handwriting warning of a 'dangerous visitor.'",
       "incriminates_suspect_ids": [
-        "the_blackmailer"
+        "madame_elise_lavigne"
       ]
     },
     {
-      "id": "footprints_in_garden",
-      "location_id": "garden",
-      "description": "Fresh footprints leading to and from the conservatory at a crucial time.",
+      "id": "socialite_gossip_note",
+      "location_id": "garden_pavilion",
+      "description": "A secret note from Mrs. Shepherd to a friend, hinting at a blackmail threat.",
       "incriminates_suspect_ids": [
-        "the_lady_in_red",
-        "the_spy"
+        "mrs_vernon_shepherd"
       ]
     }
   ],
-  "killer_id": "the_spy",
+  "killer_id": "madame_elise_lavigne",
   "canonical_timeline": [
     {
-      "time": 350,
-      "actor_id": "the_heiress",
-      "location_id": "garden",
-      "description": "Miss Amelia strolls in the garden, enjoying the night air."
+      "time": 195,
+      "actor_id": "madame_elise_lavigne",
+      "location_id": "manor_hall",
+      "description": "Madame Elise Lavigne arrives at the manor hall, claiming to be on a spiritual mission."
     },
     {
-      "time": 360,
-      "actor_id": "the_lady_in_red",
-      "location_id": "conservatory",
-      "description": "Lady Margaret tends to her flowers in the conservatory."
-    },
-    {
-      "time": 370,
-      "actor_id": "the_spy",
-      "location_id": "library",
-      "description": "Sir Richard sneaks into the library and confronts Lady Eleanor, leading to a violent argument ending with her death."
+      "time": 205,
+      "actor_id": "madame_elise_lavigne",
+      "location_id": "manor_hall",
+      "description": "Lady Eleanor is found dead in the manor hall, poisoned with a rare French potion."
     }
   ]
 }

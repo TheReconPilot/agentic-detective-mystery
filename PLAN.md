@@ -201,25 +201,14 @@ giving the game pacing, voice, and feedback.
   produces it; the suspect agent's system prompt renders it alongside the
   deception policy. Cheap, high-leverage, no architectural change.
 
-- **M9 — Suspect memory as commitments (not transcripts).**
-  The naive memory design — append every (Q, A) into the next prompt — works
-  for a handful of turns then breaks: context bloats, and the suspect starts
-  elaborating on its own past lies inconsistently because the LLM treats its
-  prior responses as ground truth. The bible-as-canon discipline collapses
-  once a suspect's own words enter the prompt unfiltered.
-
-  Instead, after each interrogation turn extract a small **Commitment** record
-  from the suspect's response: claimed location, claimed time window, named
-  witnesses, denied facts. Store on `GameState` keyed by suspect_id. Next
-  turn, the suspect agent receives these commitments as `"you previously told
-  this detective: …"` in the system prompt — NOT the raw transcript. That
-  keeps suspects consistent with their own lies (the deception policy
-  actually has teeth across turns) and stays cheap.
-
-  Implementation sketch: a `Commitment` Pydantic model; an `extract_commitments`
-  call (structured-output LLM) at the end of `apply_interrogate`; a
-  `suspect_commitments: dict[str, list[Commitment]]` field on `GameState`;
-  prompt rendering in `_render_system`.
+- **M9 — Suspect memory as commitments (not transcripts).** ✅ Done.
+  `Commitment` Pydantic model in [src/mystery/models.py](src/mystery/models.py);
+  `CommitmentExtractor` Protocol + `LLMCommitmentExtractor` / `NullCommitmentExtractor`
+  in [src/mystery/agents/commitments.py](src/mystery/agents/commitments.py);
+  `suspect_commitments: dict[str, list[Commitment]]` on `GameState`; structured
+  summaries (never the raw transcript) render in the suspect system prompt as
+  a "you previously told this detective" block. Extractor wires through the
+  graph dispatcher and is optional for offline tests.
 
 - **M10 — `show <suspect> <clue_id>` tool.** Confront a suspect with a
   specific clue. The suspect agent receives the clue text in addition to the

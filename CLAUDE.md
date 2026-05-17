@@ -8,7 +8,7 @@ A local-first agentic detective mystery game. Player interrogates LLM-driven sus
 
 Implementation roadmap, domain model, eval strategy, and milestones live in [PLAN.md](PLAN.md) — read it before doing non-trivial work.
 
-**Progress so far:** M1–M6 are all done — skeleton, case-bible generator, character-scoped RAG, suspect agent, full playable game loop, and the eval harness (optimal player, consistency judge, solvability aggregator). M7 (polish: architecture diagram, demo recording, badges, v0.1.0 tag) is what's left.
+**Progress so far:** M1–M6 done (skeleton, case-bible generator, character-scoped RAG, suspect agent, game loop, eval harness). Post-v0.1: M8 (per-suspect voice) and M9 (commitment-based suspect memory) are done. M7 (polish: architecture diagram, demo recording, badges, v0.1.0 tag) is what's left.
 
 ## Stack
 

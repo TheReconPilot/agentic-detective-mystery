@@ -1,0 +1,239 @@
+{
+  "seed": 42,
+  "victim": {
+    "name": "Lady Eleanor",
+    "role": "Estate Owner",
+    "location_of_death_id": "estate_manor",
+    "time_of_death": 180
+  },
+  "suspects": [
+    {
+      "id": "mrs_caroline",
+      "name": "Mrs. Caroline",
+      "archetype": "Sneaky Housekeeper",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            165,
+            190
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "estate history",
+        "secret passage"
+      ],
+      "deception_policy": "Divert attention to the butler",
+      "voice": "Mrs. Caroline speaks in a hushed tone, frequently mentioning her loyalty to Lady Eleanor and avoiding any discussion of the estate's financial troubles."
+    },
+    {
+      "id": "mr_johnson",
+      "name": "Mr. Johnson",
+      "archetype": "Rival Heir",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            175,
+            200
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mrs_clark"
+        }
+      ],
+      "knowledge": [
+        "inheritance laws",
+        "rival heir"
+      ],
+      "deception_policy": "Play dumb and act surprised",
+      "voice": "Mr. Johnson speaks in a confident, assertive manner, often interjecting with legal jargon. He avoids talking about his relationship with Lady Eleanor."
+    },
+    {
+      "id": "mrs_clark",
+      "name": "Mrs. Clark",
+      "archetype": "Devoted Nursemaid",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            175,
+            200
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "mr_johnson"
+        }
+      ],
+      "knowledge": [
+        "Lady Eleanor's health"
+      ],
+      "deception_policy": "Emphasize her care for Lady Eleanor",
+      "voice": "Mrs. Clark speaks in a soft, caring tone, often talking about the importance of taking care of others but avoids discussing any medical procedures."
+    },
+    {
+      "id": "mr_davis",
+      "name": "Mr. Davis",
+      "archetype": "Cunning Gamekeeper",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            160,
+            185
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "secret passageways"
+      ],
+      "deception_policy": "Claim to be an outside observer",
+      "voice": "Mr. Davis speaks with a strong accent and often mentions the importance of nature, steering clear of talking about any suspicious activities."
+    },
+    {
+      "id": "miss_green",
+      "name": "Miss Green",
+      "archetype": "Naive Maid",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "servants_quarters",
+          "time_window": [
+            170,
+            210
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "servant gossip"
+      ],
+      "deception_policy": "Act clueless and cooperative",
+      "voice": "Miss Green speaks in a high-pitched voice, often using the phrase 'oh my!' She avoids any discussion of the upcoming estate sale."
+    }
+  ],
+  "locations": [
+    {
+      "id": "estate_manor",
+      "name": "Estate Manor",
+      "description": "The main residence where Lady Eleanor resides.",
+      "connected_location_ids": [
+        "library",
+        "kitchen"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "A room filled with books and legal documents.",
+      "connected_location_ids": [
+        "estate_manor",
+        "garden"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "Where the housekeeper prepares meals.",
+      "connected_location_ids": [
+        "estate_manor",
+        "servants_quarters"
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "Garden",
+      "description": "A beautiful garden where Mr. Davis spends his time.",
+      "connected_location_ids": [
+        "library"
+      ]
+    },
+    {
+      "id": "servants_quarters",
+      "name": "Servants' Quarters",
+      "description": "Where the staff members of the estate live and work.",
+      "connected_location_ids": [
+        "kitchen"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "library_secret_diary",
+      "location_id": "library",
+      "description": "A hidden diary revealing Lady Eleanor's true feelings about her will.",
+      "incriminates_suspect_ids": [
+        "mr_johnson"
+      ]
+    },
+    {
+      "id": "kitchen_note",
+      "location_id": "kitchen",
+      "description": "A note written in code, mentioning a secret passage to the estate manor.",
+      "incriminates_suspect_ids": [
+        "mrs_caroline",
+        "mr_davis"
+      ]
+    },
+    {
+      "id": "garden_footprints",
+      "location_id": "garden",
+      "description": "Footprints leading from the garden towards the library at the time of death.",
+      "incriminates_suspect_ids": [
+        "miss_green"
+      ]
+    },
+    {
+      "id": "servants_quarters_diary_copy",
+      "location_id": "servants_quarters",
+      "description": "A copy of a diary, similar to the one found in the library but with additional details.",
+      "incriminates_suspect_ids": [
+        "mr_davis"
+      ]
+    },
+    {
+      "id": "estate_manor_poison_bottle",
+      "location_id": "estate_manor",
+      "description": "A partially used bottle of poison, near Lady Eleanor's body.",
+      "incriminates_suspect_ids": [
+        "mrs_caroline",
+        "mr_johnson"
+      ]
+    }
+  ],
+  "killer_id": "mrs_caroline",
+  "canonical_timeline": [
+    {
+      "time": 160,
+      "actor_id": "miss_green",
+      "location_id": "servants_quarters",
+      "description": "Miss Green was in the servants' quarters, preparing for her evening duties."
+    },
+    {
+      "time": 175,
+      "actor_id": "mr_johnson",
+      "location_id": "library",
+      "description": "Mr. Johnson arrived at the library to study the estate's legal documents."
+    },
+    {
+      "time": 180,
+      "actor_id": "mrs_caroline",
+      "location_id": "kitchen",
+      "description": "Mrs. Caroline, supposedly in the kitchen, was actually using a secret passage from the garden to enter the manor and commit the murder."
+    },
+    {
+      "time": 185,
+      "actor_id": "mr_davis",
+      "location_id": "garden",
+      "description": "Mr. Davis was seen in the garden, tending to his duties but had access to secret passages."
+    }
+  ]
+}

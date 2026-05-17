@@ -142,3 +142,15 @@ def test_observation_lists_unsearched_rooms(valid_bible: CaseBible) -> None:
     assert "library" in tail and "hallway" in tail and "garden" in tail
     # The current room is also flagged as unexamined before the player examines.
     assert "examined this room? NO" in obs
+
+
+def test_observation_includes_full_map(valid_bible: CaseBible) -> None:
+    """Without the full map, the LLM detective strands itself trying to reach
+    non-adjacent rooms in one move."""
+    state = initial_state(valid_bible)
+    obs = render_observation(state, valid_bible)
+    assert "FULL MAP" in obs
+    map_block = obs.split("FULL MAP")[1]
+    # Every adjacency should appear in the map block.
+    for loc in valid_bible.locations:
+        assert loc.id in map_block

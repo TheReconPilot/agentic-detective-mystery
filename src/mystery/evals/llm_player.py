@@ -115,6 +115,12 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
     """
     here = next(loc for loc in bible.locations if loc.id == state["current_location_id"])
     exits = ", ".join(here.connected_location_ids) or "(none)"
+    # Full map: the player legitimately knows the manor's layout. Without it the
+    # LLM detective gets stranded trying to reach non-adjacent rooms in one move.
+    map_lines = "\n".join(
+        f"    {loc.id} <-> {', '.join(loc.connected_location_ids) or '(dead end)'}"
+        for loc in bible.locations
+    )
     suspect_ids = ", ".join(s.id for s in bible.suspects)
     revealed = ", ".join(state["revealed_clue_ids"]) or "(none yet)"
     notes_block = (
@@ -131,7 +137,8 @@ def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | N
         f"found in {bible.victim.location_of_death_id} at t={bible.victim.time_of_death}.\n"
         f"YOU ARE IN: {here.id} — {here.name}. {here.description}\n"
         f"  examined this room? {here_examined}\n"
-        f"EXITS: {exits}\n"
+        f"EXITS (from here, single move): {exits}\n"
+        f"FULL MAP (you must chain moves through adjacent rooms):\n{map_lines}\n"
         f"SUSPECTS (use these ids): {suspect_ids}\n"
         f"CLUES FOUND: {revealed}\n"
         f"ROOMS NOT YET SEARCHED (need `examine` after moving): {unexamined_str}\n"

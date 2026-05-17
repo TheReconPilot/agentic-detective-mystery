@@ -93,6 +93,16 @@ def test_rejects_duplicate_suspect_ids(valid_bible: CaseBible) -> None:
         validate_bible(bad)
 
 
+def test_rejects_asymmetric_location_edges(valid_bible: CaseBible) -> None:
+    """A door from A to B must round-trip — the optimal player's DFS backtracks via it."""
+    one_way_library = valid_bible.locations[0].model_copy(update={"connected_location_ids": []})
+    bad = valid_bible.model_copy(
+        update={"locations": [one_way_library, *valid_bible.locations[1:]]},
+    )
+    with pytest.raises(BibleInvariantError, match="asymmetric"):
+        validate_bible(bad)
+
+
 def test_rejects_inverted_time_window(valid_bible: CaseBible) -> None:
     butler = valid_bible.suspects[0].model_copy(
         update={

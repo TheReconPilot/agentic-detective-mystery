@@ -106,6 +106,26 @@ def _check_killer_is_incriminated(bible: CaseBible) -> None:
         )
 
 
+def _check_location_edges_are_symmetric(bible: CaseBible) -> None:
+    """A door from A to B must imply a door from B to A.
+
+    The optimal-player DFS walks `move next` then `move current` to backtrack;
+    a one-way edge silently strands the player and inflates parse errors. Even
+    for the LLM player, asymmetric doors are surprising enough to count as a
+    generator bug.
+    """
+    adj = {loc.id: set(loc.connected_location_ids) for loc in bible.locations}
+    missing: list[str] = []
+    for a, neighbours in adj.items():
+        for b in neighbours:
+            if b in adj and a not in adj[b]:
+                missing.append(f"{a}->{b}")
+    if missing:
+        raise BibleInvariantError(
+            f"asymmetric location edges (each must be bidirectional): {missing}",
+        )
+
+
 def _check_time_windows_well_formed(bible: CaseBible) -> None:
     for s in bible.suspects:
         for a in s.alibis:
@@ -125,6 +145,7 @@ def validate_bible(bible: CaseBible) -> None:
     _check_unique_ids(bible)
     _check_killer_is_a_suspect(bible)
     _check_location_refs(bible)
+    _check_location_edges_are_symmetric(bible)
     _check_suspect_refs(bible)
     _check_time_windows_well_formed(bible)
     _check_killer_alibi_is_a_lie(bible)

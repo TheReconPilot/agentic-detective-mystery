@@ -196,10 +196,12 @@ detective collects every clue in 9 turns and then has nothing interesting to
 do, because the play loop is retrieval, not story. The ideas below are about
 giving the game pacing, voice, and feedback.
 
-- **M8 — Suspect voice.** Each `Suspect` gets a `voice` field (2-3 sentences:
-  speech rhythm, a verbal tic, what they avoid talking about). The generator
-  produces it; the suspect agent's system prompt renders it alongside the
-  deception policy. Cheap, high-leverage, no architectural change.
+- **M8 — Suspect voice.** ✅ Done. `Suspect.voice` field on the bible schema;
+  generator system prompt asks for 2-3 sentences on speech rhythm, a verbal
+  tic, and what the character steers conversation away from; rendered in the
+  suspect agent's system prompt as a `"How you talk:"` line alongside the
+  deception policy. Eval fixtures (seeds 1, 2, 11, 13, 42) re-baselined with
+  voices in `aeb5a1e`.
 
 - **M9 — Suspect memory as commitments (not transcripts).** ✅ Done.
   `Commitment` Pydantic model in [src/mystery/models.py](src/mystery/models.py);

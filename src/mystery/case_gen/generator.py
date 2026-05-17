@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from pydantic import ValidationError
 
-from mystery.case_gen.prompts import SYSTEM_PROMPT, user_prompt
+from mystery.case_gen.prompts import SYSTEM_PROMPT, retry_user_prompt, user_prompt
 from mystery.case_gen.validate import BibleInvariantError, validate_bible
 
 if TYPE_CHECKING:
@@ -52,9 +52,14 @@ def generate_bible(
         raise ValueError("max_attempts must be >= 1")
 
     last_error: Exception | None = None
-    for _attempt in range(max_attempts):
+    for attempt in range(max_attempts):
+        prompt = (
+            user_prompt(seed)
+            if last_error is None
+            else retry_user_prompt(seed, last_error, attempt)
+        )
         try:
-            bible = llm.generate_bible(SYSTEM_PROMPT, user_prompt(seed))
+            bible = llm.generate_bible(SYSTEM_PROMPT, prompt)
             validate_bible(bible)
         except (ValidationError, BibleInvariantError) as e:
             last_error = e

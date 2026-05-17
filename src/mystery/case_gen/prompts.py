@@ -40,3 +40,26 @@ different settings, casts, and motives. Set the `seed` field of the bible to {se
 
 def user_prompt(seed: int) -> str:
     return USER_PROMPT_TEMPLATE.format(seed=seed)
+
+
+_RETRY_PROMPT_TEMPLATE = """\
+Your previous attempt #{attempt} at seed={seed} failed validation:
+
+    {error}
+
+Generate a NEW complete CaseBible for seed={seed} that fixes this problem.
+Be especially careful that every id you reference (locations in alibis and
+clues, suspect ids in witnesses and clue.incriminates_suspect_ids, the
+killer_id) refers to something you actually defined elsewhere in the bible.
+Set the `seed` field of the bible to {seed}.
+"""
+
+
+def retry_user_prompt(seed: int, error: Exception, attempt: int) -> str:
+    """Prompt for a retry attempt, surfacing the prior validation error.
+
+    The bare retry loop produced ~50% failure rates on real LLMs because each
+    attempt was blind to the previous mistake. Feeding the error back lets the
+    model cross-check its ids on the next try.
+    """
+    return _RETRY_PROMPT_TEMPLATE.format(seed=seed, error=error, attempt=attempt)

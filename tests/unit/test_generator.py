@@ -17,10 +17,12 @@ class _ScriptedLLM:
     def __init__(self, script: list[object]) -> None:
         self._script = list(script)
         self.calls = 0
+        self.user_prompts: list[str] = []
 
     def generate_bible(self, system: str, user: str) -> CaseBible:
-        del system, user
+        del system
         self.calls += 1
+        self.user_prompts.append(user)
         item = self._script.pop(0)
         if isinstance(item, Exception):
             raise item
@@ -56,3 +58,16 @@ def test_max_attempts_must_be_positive(valid_bible: CaseBible) -> None:
     llm = _ScriptedLLM([valid_bible])
     with pytest.raises(ValueError, match="max_attempts"):
         generate_bible(seed=1, llm=llm, max_attempts=0)
+
+
+def test_retry_feeds_validation_error_back_into_prompt(valid_bible: CaseBible) -> None:
+    """The retry prompt must surface the prior error so the LLM can self-correct."""
+    broken = valid_bible.model_copy(update={"killer_id": "ghost"})
+    llm = _ScriptedLLM([broken, valid_bible])
+    generate_bible(seed=42, llm=llm, max_attempts=3)
+    assert llm.calls == 2
+    # First call: plain prompt, no error context.
+    assert "previous attempt" not in llm.user_prompts[0].lower()
+    # Second call: includes the BibleInvariantError text from the first failure.
+    assert "ghost" in llm.user_prompts[1]
+    assert "previous attempt" in llm.user_prompts[1].lower()

@@ -22,12 +22,14 @@ from mystery.graph.state import (
     GameState,
     InterrogateAction,
     MoveAction,
+    ShowAction,
 )
 from mystery.tools.accuse import apply_accuse
 from mystery.tools.examine import apply_examine
 from mystery.tools.interrogate import apply_interrogate
 from mystery.tools.move import apply_move
 from mystery.tools.notebook import apply_notebook
+from mystery.tools.show import apply_show
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,7 +41,7 @@ if TYPE_CHECKING:
     from mystery.agents.commitments import CommitmentExtractor
     from mystery.models import CaseBible
 
-_ACTION_NODES = ("move", "examine", "notebook", "accuse", "interrogate", "help")
+_ACTION_NODES = ("move", "examine", "notebook", "accuse", "interrogate", "show", "help")
 
 
 def _route(state: GameState) -> str:
@@ -106,6 +108,28 @@ def _make_interrogate_node(
     return node
 
 
+def _make_show_node(
+    bible: CaseBible,
+    vectorstore: Chroma,
+    chat_model: BaseChatModel,
+    commitment_extractor: CommitmentExtractor | None,
+) -> Callable[[GameState], dict[str, Any]]:
+    def node(state: GameState) -> dict[str, Any]:
+        action = state["pending_action"]
+        assert isinstance(action, ShowAction)
+        return apply_show(
+            state,
+            bible,
+            vectorstore,
+            chat_model,
+            action.suspect_id,
+            action.clue_id,
+            commitment_extractor=commitment_extractor,
+        )
+
+    return node
+
+
 def build_game_graph(
     bible: CaseBible,
     vectorstore: Chroma,
@@ -128,6 +152,10 @@ def build_game_graph(
     builder.add_node(
         "interrogate",
         _make_interrogate_node(bible, vectorstore, chat_model, commitment_extractor),
+    )
+    builder.add_node(
+        "show",
+        _make_show_node(bible, vectorstore, chat_model, commitment_extractor),
     )
     builder.add_node("help", _help_node)
 

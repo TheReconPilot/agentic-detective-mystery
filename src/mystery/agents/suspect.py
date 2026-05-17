@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
     from langchain_core.retrievers import BaseRetriever
 
-    from mystery.models import Commitment, Suspect
+    from mystery.models import Clue, Commitment, Suspect
 
 
 def _render_commitments(commitments: list[Commitment]) -> str:
@@ -48,7 +48,30 @@ def _render_commitments(commitments: list[Commitment]) -> str:
     )
 
 
-def _render_system(suspect: Suspect, prior_commitments: list[Commitment] | None = None) -> str:
+def _render_confronting_clue(clue: Clue | None) -> str:
+    """Render the 'detective is holding up X' block when a clue is being shown.
+
+    This is the M10 hinge: a clue that contradicts a prior commitment is
+    the moment the deception policy is supposed to crack. The block
+    deliberately frames the moment as physical confrontation, not abstract
+    question — the suspect can SEE the evidence.
+    """
+    if clue is None:
+        return ""
+    return (
+        f"The detective is now holding up a piece of evidence: {clue.description}\n"
+        "You must react to seeing it in front of you. If it contradicts something "
+        "you previously told this detective, your deception policy says how you "
+        "should cope — bluster, deny, redirect, or break — but DO react. Generic "
+        "denial without engaging with the specific item is forbidden.\n"
+    )
+
+
+def _render_system(
+    suspect: Suspect,
+    prior_commitments: list[Commitment] | None = None,
+    confronting_clue: Clue | None = None,
+) -> str:
     motive_line = (
         f"Your motive, if any: {suspect.motive}."
         if suspect.motive is not None
@@ -56,12 +79,14 @@ def _render_system(suspect: Suspect, prior_commitments: list[Commitment] | None 
     )
     voice_line = f"How you talk: {suspect.voice}\n" if suspect.voice else ""
     commitments_block = _render_commitments(prior_commitments or [])
+    clue_block = _render_confronting_clue(confronting_clue)
     return (
         f"You are {suspect.name}, a {suspect.archetype} caught up in a murder mystery.\n"
         f"{motive_line}\n"
         f"Deception policy: {suspect.deception_policy}\n"
         f"{voice_line}"
         f"{commitments_block}"
+        f"{clue_block}"
         "\n"
         "A detective is questioning you. Answer in character in 1-3 sentences. "
         "You may lie within your deception policy, but never invent facts that contradict "
@@ -84,14 +109,21 @@ def build_suspect_messages(
     retrieved_docs: list[Document],
     question: str,
     prior_commitments: list[Commitment] | None = None,
+    confronting_clue: Clue | None = None,
 ) -> list[BaseMessage]:
     """Render the system + user messages for a single interrogation turn.
 
     ``prior_commitments`` is the list of structured summaries from earlier
     turns with this same suspect — see :class:`mystery.models.Commitment`.
+
+    ``confronting_clue`` is the M10 hook: when the detective uses ``show``,
+    pass the Clue object so the suspect agent renders a "detective is
+    holding up X" block. The persona + voice + commitments scaffolding is
+    fully shared with the plain ``ask`` path — the suspect inherits all of
+    M8/M9 even when the action is a confrontation.
     """
     return [
-        SystemMessage(content=_render_system(suspect, prior_commitments)),
+        SystemMessage(content=_render_system(suspect, prior_commitments, confronting_clue)),
         HumanMessage(content=_render_user(retrieved_docs, question)),
     ]
 
@@ -102,9 +134,16 @@ def respond_as_suspect(
     chat_model: BaseChatModel,
     question: str,
     prior_commitments: list[Commitment] | None = None,
+    confronting_clue: Clue | None = None,
 ) -> str:
     """Run one interrogation turn end-to-end."""
     docs = retriever.invoke(question)
-    messages = build_suspect_messages(suspect, docs, question, prior_commitments)
+    messages = build_suspect_messages(
+        suspect,
+        docs,
+        question,
+        prior_commitments,
+        confronting_clue,
+    )
     response = chat_model.invoke(messages)
     return str(response.content)

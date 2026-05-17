@@ -22,6 +22,7 @@ from mystery.graph.state import (
     InterrogateAction,
     MoveAction,
     NotebookAction,
+    ShowAction,
 )
 
 
@@ -37,6 +38,7 @@ _INTERROGATE_VERBS = {"ask", "interrogate", "talk", "question", "interview"}
 _EXAMINE_VERBS = {"examine", "look", "search", "investigate", "inspect"}
 _NOTEBOOK_VERBS = {"notebook", "notes", "n"}
 _ACCUSE_VERBS = {"accuse"}
+_SHOW_VERBS = {"show", "present", "confront"}
 _HELP_VERBS = {"help", "?", "h"}
 
 # Filler words after verb that should be dropped, e.g. "move to library".
@@ -55,6 +57,7 @@ HELP_TEXT = (
     "  move <location>           (go/goto/walk) move to a connected location\n"
     "  ask <suspect> <question>  (question/interview/talk) interrogate a suspect\n"
     "  examine                   (look/search/investigate/inspect) look for clues\n"
+    "  show <suspect> <clue>     (present/confront) confront a suspect with a clue\n"
     "  notes                     show your notebook\n"
     "  accuse <suspect>          end the game by naming the killer\n"
     "  help                      show this message"
@@ -141,6 +144,16 @@ def parse_action(user_input: str) -> Action | ParseError:
         if not suspect_id:
             return ParseError("Usage: accuse <suspect>")
         return AccuseAction(suspect_id=suspect_id)
+
+    if verb in _SHOW_VERBS:
+        all_args = _strip_leading_filler(" ".join(rest).split())
+        if len(all_args) < 2:
+            return ParseError("Usage: show <suspect> <clue>")
+        suspect_id = _clean_arg(all_args[0])
+        clue_id = _clean_arg(all_args[1])
+        if not suspect_id or not clue_id:
+            return ParseError("Usage: show <suspect> <clue>")
+        return ShowAction(suspect_id=suspect_id, clue_id=clue_id)
 
     if verb in _HELP_VERBS:
         return HelpAction()

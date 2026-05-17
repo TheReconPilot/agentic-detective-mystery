@@ -51,13 +51,28 @@ class AccuseAction(BaseModel):
     suspect_id: str
 
 
+class ShowAction(BaseModel):
+    """Confront a suspect with a specific revealed clue."""
+
+    model_config = _StrictAction
+    kind: Literal["show"] = "show"
+    suspect_id: str
+    clue_id: str
+
+
 class HelpAction(BaseModel):
     model_config = _StrictAction
     kind: Literal["help"] = "help"
 
 
 Action = Annotated[
-    MoveAction | InterrogateAction | ExamineAction | NotebookAction | AccuseAction | HelpAction,
+    MoveAction
+    | InterrogateAction
+    | ExamineAction
+    | NotebookAction
+    | AccuseAction
+    | ShowAction
+    | HelpAction,
     Field(discriminator="kind"),
 ]
 

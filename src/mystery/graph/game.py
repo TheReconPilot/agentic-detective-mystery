@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from langchain_core.language_models import BaseChatModel
     from langgraph.graph.state import CompiledStateGraph
 
+    from mystery.agents.commitments import CommitmentExtractor
     from mystery.models import CaseBible
 
 _ACTION_NODES = ("move", "examine", "notebook", "accuse", "interrogate", "help")
@@ -87,6 +88,7 @@ def _make_interrogate_node(
     bible: CaseBible,
     vectorstore: Chroma,
     chat_model: BaseChatModel,
+    commitment_extractor: CommitmentExtractor | None,
 ) -> Callable[[GameState], dict[str, Any]]:
     def node(state: GameState) -> dict[str, Any]:
         action = state["pending_action"]
@@ -98,6 +100,7 @@ def _make_interrogate_node(
             chat_model,
             action.suspect_id,
             action.question,
+            commitment_extractor=commitment_extractor,
         )
 
     return node
@@ -107,6 +110,7 @@ def build_game_graph(
     bible: CaseBible,
     vectorstore: Chroma,
     chat_model: BaseChatModel,
+    commitment_extractor: CommitmentExtractor | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Compile the per-turn dispatcher graph.
 
@@ -121,7 +125,10 @@ def build_game_graph(
     builder.add_node("examine", _make_examine_node(bible))
     builder.add_node("notebook", _notebook_node)
     builder.add_node("accuse", _make_accuse_node(bible))
-    builder.add_node("interrogate", _make_interrogate_node(bible, vectorstore, chat_model))
+    builder.add_node(
+        "interrogate",
+        _make_interrogate_node(bible, vectorstore, chat_model, commitment_extractor),
+    )
     builder.add_node("help", _help_node)
 
     builder.set_conditional_entry_point(_route, {n: n for n in _ACTION_NODES})

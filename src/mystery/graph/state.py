@@ -11,8 +11,13 @@ from typing import TYPE_CHECKING, Annotated, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# Imported eagerly (not under TYPE_CHECKING) because LangGraph resolves
+# TypedDict forward references at runtime via typing.get_type_hints when
+# the graph is compiled. A TYPE_CHECKING-only import would NameError there.
+from mystery.models import Commitment  # noqa: TC001
+
 if TYPE_CHECKING:
-    from mystery.models import CaseBible, Commitment
+    from mystery.models import CaseBible
 
 _StrictAction = ConfigDict(extra="forbid", frozen=True)
 

@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from langchain_core.embeddings import Embeddings
     from langchain_core.language_models import BaseChatModel
 
+    from mystery.agents.commitments import CommitmentExtractor
     from mystery.case_gen.generator import BibleLLM
     from mystery.evals.consistency import ConsistencyJudge
 
@@ -66,6 +67,20 @@ def _default_embeddings_factory(settings: Settings) -> Embeddings:
         model=settings.embed_model,
         base_url=settings.ollama_base_url,
     )
+
+
+def _default_commitment_extractor_factory(settings: Settings) -> CommitmentExtractor:
+    """Production extractor: 0-temp chat for stable structured-output extraction."""
+    from langchain_ollama import ChatOllama
+
+    from mystery.agents.commitments import LLMCommitmentExtractor
+
+    extractor_chat = ChatOllama(
+        model=settings.llm_model,
+        temperature=0.0,
+        base_url=settings.ollama_base_url,
+    )
+    return LLMCommitmentExtractor(extractor_chat)
 
 
 def _default_judge_factory(settings: Settings) -> ConsistencyJudge:
@@ -174,7 +189,8 @@ def play(
     embeddings = _default_embeddings_factory(settings)
     chat = _default_chat_model_factory(settings)
     vectorstore = get_or_build_index(bible, embeddings, _index_dir_for(settings, seed))
-    graph = build_game_graph(bible, vectorstore, chat)
+    commitment_extractor = _default_commitment_extractor_factory(settings)
+    graph = build_game_graph(bible, vectorstore, chat, commitment_extractor)
 
     state = initial_state(bible)
     console.print(_opening_blurb(bible))

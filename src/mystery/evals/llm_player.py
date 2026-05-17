@@ -47,12 +47,14 @@ Available commands (you MUST use these exact verbs):
   accuse <suspect_id>           end the game by naming the killer
 
 Strategy (follow in order):
-1. Visit EVERY room in UNVISITED ROOMS and `examine` each one. Move first,
-   then examine.
-2. Once all clues are found, interrogate each suspect — ask about the
-   victim, their whereabouts, and the clues you have collected.
-3. When the evidence points clearly to one suspect, `accuse <suspect_id>`.
-   The game ends instantly on accusation, right or wrong, so don't guess.
+1. If the current room is NOT YET examined, your next command is `examine`.
+2. If there are still rooms in ROOMS NOT YET SEARCHED, your next command is
+   `move <one of them>` (must be adjacent — use EXITS).
+3. Once every room is searched, interrogate each suspect about the victim,
+   their whereabouts, and the specific clues you have collected.
+4. When the evidence points clearly to one suspect, `accuse <suspect_id>`.
+   The game ends instantly on accusation, right or wrong, so don't guess —
+   but DO accuse before your turns run out; an indecisive detective loses.
 
 Hard rules:
 - NEVER repeat the same command twice in a row. If LAST RESULT says you have
@@ -99,7 +101,7 @@ class PlaytestReport:
         return f"{head}\n{body}"
 
 
-def render_observation(state: GameState, bible: CaseBible) -> str:
+def render_observation(state: GameState, bible: CaseBible, *, max_turns: int | None = None) -> str:
     """Render the textual state the LLM detective sees each turn.
 
     Deliberately bible-redacted: it shows what a player at this state would
@@ -119,22 +121,24 @@ def render_observation(state: GameState, bible: CaseBible) -> str:
         "\n".join(f"  - {line}" for line in state["notebook"]) if state["notebook"] else "  (empty)"
     )
     last = state["last_output"] or "(none)"
-    unvisited = sorted(
-        {loc.id for loc in bible.locations} - set(state["visited_location_ids"]),
-    )
-    unvisited_str = ", ".join(unvisited) or "(none — you've been everywhere)"
+    all_locs = {loc.id for loc in bible.locations}
+    unexamined = sorted(all_locs - set(state["examined_location_ids"]))
+    unexamined_str = ", ".join(unexamined) or "(none — you have searched everywhere)"
+    here_examined = "yes" if here.id in state["examined_location_ids"] else "NO, not yet"
 
     return (
         f"VICTIM: {bible.victim.name} ({bible.victim.role}), "
         f"found in {bible.victim.location_of_death_id} at t={bible.victim.time_of_death}.\n"
         f"YOU ARE IN: {here.id} — {here.name}. {here.description}\n"
+        f"  examined this room? {here_examined}\n"
         f"EXITS: {exits}\n"
         f"SUSPECTS (use these ids): {suspect_ids}\n"
         f"CLUES FOUND: {revealed}\n"
-        f"UNVISITED ROOMS: {unvisited_str}\n"
+        f"ROOMS NOT YET SEARCHED (need `examine` after moving): {unexamined_str}\n"
         f"NOTEBOOK:\n{notes_block}\n"
         f"LAST RESULT: {last}\n"
-        f"TURN: {state['turn_count']}\n"
+        f"TURN: {state['turn_count']}"
+        f"{f' of {max_turns} (commit soon!)' if max_turns else ''}\n"
         f"\nWhat is your next command?"
     )
 
@@ -182,7 +186,7 @@ def play_with_llm(
     consecutive_parse_errors = 0
 
     while not state["done"] and state["turn_count"] < max_turns:
-        observation = render_observation(state, bible)
+        observation = render_observation(state, bible, max_turns=max_turns)
         raw = _ask_detective(detective_chat_model, observation)
 
         if raw == last_raw:

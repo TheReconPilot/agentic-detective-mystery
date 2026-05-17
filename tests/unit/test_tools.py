@@ -71,6 +71,16 @@ def test_examine_in_room_with_clues_reveals_them(valid_bible: CaseBible) -> None
     assert "torn_letter" in update["revealed_clue_ids"]
     assert any("torn letter" in line.lower() for line in update["notebook"])
     assert update["turn_count"] == 1
+    assert "library" in update["examined_location_ids"]
+
+
+def test_examine_records_examined_location_even_when_empty(valid_bible: CaseBible) -> None:
+    """An examined-but-empty room must still be marked so the player doesn't loop."""
+    state = initial_state(valid_bible)
+    state = _merge(state, apply_move(state, valid_bible, "hallway"))
+    state = _merge(state, apply_move(state, valid_bible, "garden"))
+    update = apply_examine(state, valid_bible)
+    assert "garden" in update["examined_location_ids"]
 
 
 def test_examine_re_examining_does_not_duplicate_notebook_entries(

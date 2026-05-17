@@ -32,8 +32,10 @@ def apply_examine(state: GameState, bible: CaseBible) -> dict[str, Any]:
     else:
         text = "You find:\n" + "\n".join(f"  - {c.description} [{c.id}]" for c in fresh)
 
+    examined = sorted(set(state["examined_location_ids"]) | {here})
     return {
         "revealed_clue_ids": new_revealed,
+        "examined_location_ids": examined,
         "notebook": new_notebook,
         "turn_count": state["turn_count"] + 1,
         "last_output": text,

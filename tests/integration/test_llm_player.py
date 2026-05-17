@@ -112,11 +112,12 @@ def test_llm_player_aborts_on_consecutive_repeat_loop(valid_bible: CaseBible) ->
     assert any(step.parsed_kind == "aborted_loop" for step in report.steps)
 
 
-def test_observation_lists_unvisited_rooms(valid_bible: CaseBible) -> None:
-    """Surfacing UNVISITED ROOMS is what unsticks a detective stuck on examine."""
+def test_observation_lists_unsearched_rooms(valid_bible: CaseBible) -> None:
+    """The detective needs to see which rooms still need an `examine` action."""
     state = initial_state(valid_bible)
     obs = render_observation(state, valid_bible)
-    assert "UNVISITED ROOMS" in obs
-    # Library is the starting room; the other two should be flagged unvisited.
-    assert "hallway" in obs.split("UNVISITED ROOMS")[1]
-    assert "garden" in obs.split("UNVISITED ROOMS")[1]
+    assert "ROOMS NOT YET SEARCHED" in obs
+    tail = obs.split("ROOMS NOT YET SEARCHED")[1]
+    assert "library" in tail and "hallway" in tail and "garden" in tail
+    # The current room is also flagged as unexamined before the player examines.
+    assert "examined this room? NO" in obs

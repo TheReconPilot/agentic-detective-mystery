@@ -73,6 +73,7 @@ class GameState(TypedDict):
     current_location_id: str
     revealed_clue_ids: list[str]
     visited_location_ids: list[str]
+    examined_location_ids: list[str]
     notebook: list[str]
     turn_count: int
     accusation: AccusationResult | None
@@ -89,6 +90,7 @@ def initial_state(bible: CaseBible) -> GameState:
         current_location_id=here,
         revealed_clue_ids=[],
         visited_location_ids=[here],
+        examined_location_ids=[],
         notebook=[
             f"VICTIM: {bible.victim.name} ({bible.victim.role}) — found in "
             f"{here} at t={bible.victim.time_of_death}.",

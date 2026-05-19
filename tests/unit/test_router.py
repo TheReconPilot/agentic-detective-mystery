@@ -8,9 +8,11 @@ from mystery.graph.state import (
     ExamineAction,
     HelpAction,
     InterrogateAction,
+    LocationsAction,
     MoveAction,
     NotebookAction,
     ShowAction,
+    SuspectsAction,
 )
 
 
@@ -29,6 +31,11 @@ from mystery.graph.state import (
         ("confront butler muddy_boots", ShowAction(suspect_id="butler", clue_id="muddy_boots")),
         ("help", HelpAction()),
         ("?", HelpAction()),
+        ("suspects", SuspectsAction()),
+        ("who", SuspectsAction()),
+        ("locations", LocationsAction()),
+        ("map", LocationsAction()),
+        ("where", LocationsAction()),
     ],
 )
 def test_parses_simple_commands(text: str, expected: object) -> None:

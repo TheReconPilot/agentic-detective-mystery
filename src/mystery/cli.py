@@ -162,11 +162,21 @@ def _index_dir_for(settings: Settings, seed: int) -> Path:
 
 
 def _opening_blurb(bible: CaseBible) -> str:
-    death_loc = next(loc for loc in bible.locations if loc.id == bible.victim.location_of_death_id)
+    by_id = {loc.id: loc for loc in bible.locations}
+    death_loc = by_id[bible.victim.location_of_death_id]
+    suspect_lines = "\n".join(f"  [{s.id}] {s.name} — {s.archetype}" for s in bible.suspects)
+    exits = [
+        f"[{lid}] {by_id[lid].name}" for lid in death_loc.connected_location_ids if lid in by_id
+    ]
+    exits_block = "From here you can go to: " + ", ".join(exits) if exits else "There are no exits."
     return (
         f"[bold]The case of {bible.victim.name}.[/] "
         f"The {bible.victim.role.lower()} was found dead in the {death_loc.name}. "
-        f"You arrive to investigate. Type 'help' for commands.\n"
+        f"You arrive to investigate.\n\n"
+        f"[bold]People in the house:[/]\n{suspect_lines}\n\n"
+        f"[bold]You are in {death_loc.name}.[/] {exits_block}\n"
+        f"Type 'help' for commands, 'suspects' to re-list people, "
+        f"'locations' to re-list exits.\n"
     )
 
 

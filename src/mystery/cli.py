@@ -189,9 +189,26 @@ def _play_turn(state: GameState, user_input: str) -> tuple[str, bool]:
     return "", True
 
 
+def _stream_to_console(text: str) -> None:
+    """Print an LLM token chunk to the console without buffering or markup.
+
+    Rich's default ``print`` adds a trailing newline and interprets markup,
+    both of which would mangle a stream of partial tokens. We bypass Rich
+    here and write directly to its underlying file so chunks are visible
+    the moment Ollama emits them.
+    """
+    console.file.write(text)
+    console.file.flush()
+
+
 @app.command()
 def play(
     seed: int = typer.Option(..., help="Seed of the case to play."),
+    stream: bool = typer.Option(
+        True,
+        "--stream/--no-stream",
+        help="Stream suspect replies token-by-token (default on).",
+    ),
 ) -> None:
     """Play the case end-to-end in a REPL."""
     settings = Settings()
@@ -200,7 +217,14 @@ def play(
     chat = _default_chat_model_factory(settings)
     vectorstore = get_or_build_index(bible, embeddings, _index_dir_for(settings, seed))
     commitment_extractor = _default_commitment_extractor_factory(settings)
-    graph = build_game_graph(bible, vectorstore, chat, commitment_extractor)
+    stream_callback = _stream_to_console if stream else None
+    graph = build_game_graph(
+        bible,
+        vectorstore,
+        chat,
+        commitment_extractor,
+        stream_callback=stream_callback,
+    )
 
     state = initial_state(bible)
     console.print(_opening_blurb(bible))
@@ -221,7 +245,14 @@ def play(
                 console.print(f"[yellow]{message}[/]")
             continue
 
-        state = cast("GameState", graph.invoke(state))
+        try:
+            state = cast("GameState", graph.invoke(state))
+        except KeyboardInterrupt:
+            # Streaming an LLM reply can take a while; let the player abort
+            # that turn without killing the game. The turn counter is only
+            # bumped inside the tool, so an interrupted stream costs nothing.
+            console.print("\n[yellow](interrupted)[/]")
+            continue
         if state["last_output"]:
             console.print(state["last_output"])
 

@@ -20,9 +20,11 @@ from mystery.graph.state import (
     ExamineAction,
     HelpAction,
     InterrogateAction,
+    LocationsAction,
     MoveAction,
     NotebookAction,
     ShowAction,
+    SuspectsAction,
 )
 
 
@@ -40,6 +42,8 @@ _NOTEBOOK_VERBS = {"notebook", "notes", "n"}
 _ACCUSE_VERBS = {"accuse"}
 _SHOW_VERBS = {"show", "present", "confront"}
 _HELP_VERBS = {"help", "?", "h"}
+_SUSPECTS_VERBS = {"suspects", "who", "people"}
+_LOCATIONS_VERBS = {"locations", "map", "where", "exits"}
 
 # Filler words after verb that should be dropped, e.g. "move to library".
 _FILLER_AFTER_VERB = {"to", "the", "into", "toward", "towards", "at", "with"}
@@ -59,6 +63,8 @@ HELP_TEXT = (
     "  examine                   (look/search/investigate/inspect) look for clues\n"
     "  show <suspect> <clue>     (present/confront) confront a suspect with a clue\n"
     "  notes                     show your notebook\n"
+    "  suspects                  (who) list everyone you can interrogate\n"
+    "  locations                 (map/where) show this room and where you can go\n"
     "  accuse <suspect>          end the game by naming the killer\n"
     "  help                      show this message"
 )
@@ -162,5 +168,11 @@ def parse_action(user_input: str) -> Action | ParseError:
 
     if verb in _HELP_VERBS:
         return HelpAction()
+
+    if verb in _SUSPECTS_VERBS:
+        return SuspectsAction()
+
+    if verb in _LOCATIONS_VERBS:
+        return LocationsAction()
 
     return ParseError(f"Unknown command {verb!r}. Type 'help' for commands.")

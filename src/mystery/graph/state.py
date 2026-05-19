@@ -65,6 +65,20 @@ class HelpAction(BaseModel):
     kind: Literal["help"] = "help"
 
 
+class SuspectsAction(BaseModel):
+    """Free action: list everyone the player can interrogate."""
+
+    model_config = _StrictAction
+    kind: Literal["suspects"] = "suspects"
+
+
+class LocationsAction(BaseModel):
+    """Free action: list current room + connected exits."""
+
+    model_config = _StrictAction
+    kind: Literal["locations"] = "locations"
+
+
 Action = Annotated[
     MoveAction
     | InterrogateAction
@@ -72,7 +86,9 @@ Action = Annotated[
     | NotebookAction
     | AccuseAction
     | ShowAction
-    | HelpAction,
+    | HelpAction
+    | SuspectsAction
+    | LocationsAction,
     Field(discriminator="kind"),
 ]
 

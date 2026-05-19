@@ -27,9 +27,11 @@ from mystery.graph.state import (
 from mystery.tools.accuse import apply_accuse
 from mystery.tools.examine import apply_examine
 from mystery.tools.interrogate import apply_interrogate
+from mystery.tools.locations import apply_locations
 from mystery.tools.move import apply_move
 from mystery.tools.notebook import apply_notebook
 from mystery.tools.show import apply_show
+from mystery.tools.suspects import apply_suspects
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -41,7 +43,17 @@ if TYPE_CHECKING:
     from mystery.agents.commitments import CommitmentExtractor
     from mystery.models import CaseBible
 
-_ACTION_NODES = ("move", "examine", "notebook", "accuse", "interrogate", "show", "help")
+_ACTION_NODES = (
+    "move",
+    "examine",
+    "notebook",
+    "accuse",
+    "interrogate",
+    "show",
+    "help",
+    "suspects",
+    "locations",
+)
 
 
 def _route(state: GameState) -> str:
@@ -75,6 +87,20 @@ def _notebook_node(state: GameState) -> dict[str, Any]:
 
 def _help_node(_state: GameState) -> dict[str, Any]:
     return {"last_output": HELP_TEXT}
+
+
+def _make_suspects_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
+    def node(_state: GameState) -> dict[str, Any]:
+        return apply_suspects(bible)
+
+    return node
+
+
+def _make_locations_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
+    def node(state: GameState) -> dict[str, Any]:
+        return apply_locations(state, bible)
+
+    return node
 
 
 def _make_accuse_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
@@ -158,6 +184,8 @@ def build_game_graph(
         _make_show_node(bible, vectorstore, chat_model, commitment_extractor),
     )
     builder.add_node("help", _help_node)
+    builder.add_node("suspects", _make_suspects_node(bible))
+    builder.add_node("locations", _make_locations_node(bible))
 
     builder.set_conditional_entry_point(_route, {n: n for n in _ACTION_NODES})
 

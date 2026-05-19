@@ -19,6 +19,8 @@ from mystery.agents.suspect import respond_as_suspect
 from mystery.rag.retriever import suspect_retriever
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from langchain_chroma import Chroma
     from langchain_core.language_models import BaseChatModel
 
@@ -35,6 +37,7 @@ def apply_show(
     suspect_id: str,
     clue_id: str,
     commitment_extractor: CommitmentExtractor | None = None,
+    stream_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     suspect = next((s for s in bible.suspects if s.id == suspect_id), None)
     if suspect is None:
@@ -63,6 +66,10 @@ def apply_show(
     # prompt's clue block already handles the confrontation, so the user
     # message just narrates the moment in the detective's voice.
     framing_question = "I'm showing you this. What do you have to say about it?"
+
+    if stream_callback is not None:
+        stream_callback(f"You show {suspect.name} the evidence: {clue.description}\n")
+        stream_callback(f"{suspect.name}: ")
     reply = respond_as_suspect(
         suspect,
         retriever,
@@ -70,15 +77,21 @@ def apply_show(
         question=framing_question,
         prior_commitments=prior,
         confronting_clue=clue,
+        stream_callback=stream_callback,
     )
+    if stream_callback is not None:
+        stream_callback("\n")
 
     extractor: CommitmentExtractor = commitment_extractor or NullCommitmentExtractor()
     new_commitment = extractor.extract(suspect, framing_question, reply)
+    rendered = (
+        ""
+        if stream_callback is not None
+        else f"You show {suspect.name} the evidence: {clue.description}\n{suspect.name}: {reply}"
+    )
     update: dict[str, Any] = {
         "turn_count": state["turn_count"] + 1,
-        "last_output": (
-            f"You show {suspect.name} the evidence: {clue.description}\n{suspect.name}: {reply}"
-        ),
+        "last_output": rendered,
     }
     if new_commitment is not None:
         updated_commitments = {k: list(v) for k, v in state["suspect_commitments"].items()}

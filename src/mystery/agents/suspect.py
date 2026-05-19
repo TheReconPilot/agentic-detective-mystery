@@ -21,12 +21,16 @@ from typing import TYPE_CHECKING
 from langchain_core.messages import HumanMessage, SystemMessage
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from langchain_core.documents import Document
     from langchain_core.language_models import BaseChatModel
     from langchain_core.messages import BaseMessage
     from langchain_core.retrievers import BaseRetriever
 
     from mystery.models import Clue, Commitment, Suspect
+
+    StreamCallback = Callable[[str], None]
 
 
 def _render_commitments(commitments: list[Commitment]) -> str:
@@ -135,8 +139,18 @@ def respond_as_suspect(
     question: str,
     prior_commitments: list[Commitment] | None = None,
     confronting_clue: Clue | None = None,
+    stream_callback: StreamCallback | None = None,
 ) -> str:
-    """Run one interrogation turn end-to-end."""
+    """Run one interrogation turn end-to-end.
+
+    When ``stream_callback`` is provided the chat model is consumed via
+    ``.stream()`` and each non-empty content chunk is forwarded to the
+    callback as it arrives. The full concatenated reply is still returned so
+    upstream bookkeeping (commitment extraction, ``last_output``) is
+    unchanged. Without a callback we keep the original ``.invoke()`` path so
+    tests and evals (where ``FakeListChatModel`` is used) remain
+    deterministic.
+    """
     docs = retriever.invoke(question)
     messages = build_suspect_messages(
         suspect,
@@ -145,5 +159,14 @@ def respond_as_suspect(
         prior_commitments,
         confronting_clue,
     )
-    response = chat_model.invoke(messages)
-    return str(response.content)
+    if stream_callback is None:
+        response = chat_model.invoke(messages)
+        return str(response.content)
+
+    parts: list[str] = []
+    for chunk in chat_model.stream(messages):
+        content = str(chunk.content)
+        if content:
+            stream_callback(content)
+            parts.append(content)
+    return "".join(parts)

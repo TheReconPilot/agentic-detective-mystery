@@ -117,6 +117,7 @@ def _make_interrogate_node(
     vectorstore: Chroma,
     chat_model: BaseChatModel,
     commitment_extractor: CommitmentExtractor | None,
+    stream_callback: Callable[[str], None] | None,
 ) -> Callable[[GameState], dict[str, Any]]:
     def node(state: GameState) -> dict[str, Any]:
         action = state["pending_action"]
@@ -129,6 +130,7 @@ def _make_interrogate_node(
             action.suspect_id,
             action.question,
             commitment_extractor=commitment_extractor,
+            stream_callback=stream_callback,
         )
 
     return node
@@ -139,6 +141,7 @@ def _make_show_node(
     vectorstore: Chroma,
     chat_model: BaseChatModel,
     commitment_extractor: CommitmentExtractor | None,
+    stream_callback: Callable[[str], None] | None,
 ) -> Callable[[GameState], dict[str, Any]]:
     def node(state: GameState) -> dict[str, Any]:
         action = state["pending_action"]
@@ -151,6 +154,7 @@ def _make_show_node(
             action.suspect_id,
             action.clue_id,
             commitment_extractor=commitment_extractor,
+            stream_callback=stream_callback,
         )
 
     return node
@@ -161,6 +165,7 @@ def build_game_graph(
     vectorstore: Chroma,
     chat_model: BaseChatModel,
     commitment_extractor: CommitmentExtractor | None = None,
+    stream_callback: Callable[[str], None] | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Compile the per-turn dispatcher graph.
 
@@ -177,11 +182,13 @@ def build_game_graph(
     builder.add_node("accuse", _make_accuse_node(bible))
     builder.add_node(
         "interrogate",
-        _make_interrogate_node(bible, vectorstore, chat_model, commitment_extractor),
+        _make_interrogate_node(
+            bible, vectorstore, chat_model, commitment_extractor, stream_callback
+        ),
     )
     builder.add_node(
         "show",
-        _make_show_node(bible, vectorstore, chat_model, commitment_extractor),
+        _make_show_node(bible, vectorstore, chat_model, commitment_extractor, stream_callback),
     )
     builder.add_node("help", _help_node)
     builder.add_node("suspects", _make_suspects_node(bible))

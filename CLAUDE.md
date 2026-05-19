@@ -99,3 +99,4 @@ Six ideas to keep in mind when editing:
 - New tools and agent I/O go through Pydantic models, not raw dicts.
 - All persisted data (case bibles, future Chroma indexes) goes under directories named in `Settings` — never hard-code paths.
 - Frozen eval cases will live in `evals/cases/` as JSON — don't regenerate them casually; they are regression fixtures.
+- Commit frequently, write short one-liner commits. AI Co-Author attribution can be added.

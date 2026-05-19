@@ -9,10 +9,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from pydantic import ValidationError
-
 from mystery.case_gen.prompts import SYSTEM_PROMPT, retry_user_prompt, user_prompt
-from mystery.case_gen.validate import BibleInvariantError, validate_bible
+from mystery.case_gen.validate import validate_bible
 
 if TYPE_CHECKING:
     from mystery.models import CaseBible
@@ -61,7 +59,7 @@ def generate_bible(
         try:
             bible = llm.generate_bible(SYSTEM_PROMPT, prompt)
             validate_bible(bible)
-        except (ValidationError, BibleInvariantError) as e:
+        except ValueError as e:
             last_error = e
             continue
         else:

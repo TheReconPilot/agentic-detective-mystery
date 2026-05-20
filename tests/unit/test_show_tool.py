@@ -44,7 +44,7 @@ def test_show_unknown_suspect_returns_helpful_error(valid_bible: CaseBible) -> N
         suspect_id="phantom",
         clue_id="torn_letter",
     )
-    assert "no suspect 'phantom'" in update["last_output"]
+    assert "'phantom'" in update["last_output"]
     assert "turn_count" not in update
 
 

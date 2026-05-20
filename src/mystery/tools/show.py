@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING, Any
 from mystery.agents.commitments import NullCommitmentExtractor
 from mystery.agents.suspect import respond_as_suspect
 from mystery.rag.retriever import suspect_retriever
+from mystery.tools._resolve import format_suspect_roster, resolve_suspect
+from mystery.tools._streaming import StreamingPrefix
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,10 +41,15 @@ def apply_show(
     commitment_extractor: CommitmentExtractor | None = None,
     stream_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
-    suspect = next((s for s in bible.suspects if s.id == suspect_id), None)
+    suspect = resolve_suspect(bible, suspect_id)
     if suspect is None:
-        ids = ", ".join(s.id for s in bible.suspects)
-        return {"last_output": f"There is no suspect {suspect_id!r}. Known: {ids}."}
+        roster = format_suspect_roster(bible)
+        return {
+            "last_output": (
+                f"I'm not sure who you mean by {suspect_id!r}. "
+                f"You can confront any of these (by id, name, or archetype):\n{roster}"
+            )
+        }
 
     clue = next((c for c in bible.clues if c.id == clue_id), None)
     if clue is None:
@@ -60,8 +67,8 @@ def apply_show(
             ),
         }
 
-    retriever = suspect_retriever(vectorstore, suspect_id=suspect_id)
-    prior = state["suspect_commitments"].get(suspect_id, [])
+    retriever = suspect_retriever(vectorstore, suspect_id=suspect.id)
+    prior = state["suspect_commitments"].get(suspect.id, [])
     # The "question" we pass is the framing the suspect sees: the system
     # prompt's clue block already handles the confrontation, so the user
     # message just narrates the moment in the detective's voice.
@@ -69,7 +76,7 @@ def apply_show(
 
     if stream_callback is not None:
         stream_callback(f"You show {suspect.name} the evidence: {clue.description}\n")
-        stream_callback(f"{suspect.name}: ")
+    wrapped = StreamingPrefix(stream_callback, suspect.name) if stream_callback else None
     reply = respond_as_suspect(
         suspect,
         retriever,
@@ -77,10 +84,10 @@ def apply_show(
         question=framing_question,
         prior_commitments=prior,
         confronting_clue=clue,
-        stream_callback=stream_callback,
+        stream_callback=wrapped,
     )
-    if stream_callback is not None:
-        stream_callback("\n")
+    if wrapped is not None:
+        wrapped.finalize()
 
     extractor: CommitmentExtractor = commitment_extractor or NullCommitmentExtractor()
     new_commitment = extractor.extract(suspect, framing_question, reply)
@@ -95,6 +102,6 @@ def apply_show(
     }
     if new_commitment is not None:
         updated_commitments = {k: list(v) for k, v in state["suspect_commitments"].items()}
-        updated_commitments.setdefault(suspect_id, []).append(new_commitment)
+        updated_commitments.setdefault(suspect.id, []).append(new_commitment)
         update["suspect_commitments"] = updated_commitments
     return update

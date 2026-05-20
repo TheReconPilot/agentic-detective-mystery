@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from mystery.graph.state import AccusationResult
+from mystery.tools._resolve import format_suspect_roster, resolve_suspect
 
 if TYPE_CHECKING:
     from mystery.graph.state import GameState
@@ -12,28 +13,33 @@ if TYPE_CHECKING:
 
 
 def apply_accuse(state: GameState, bible: CaseBible, suspect_id: str) -> dict[str, Any]:
-    suspect_ids = {s.id for s in bible.suspects}
-    if suspect_id not in suspect_ids:
+    suspect = resolve_suspect(bible, suspect_id)
+    if suspect is None:
         # Don't end the game on a typo — give the player back their turn.
-        return {"last_output": f"There is no suspect {suspect_id!r}. The accusation is withdrawn."}
+        roster = format_suspect_roster(bible)
+        return {
+            "last_output": (
+                f"I'm not sure who you mean by {suspect_id!r}. The accusation is withdrawn.\n"
+                f"You can accuse any of these (by id, name, or archetype):\n{roster}"
+            )
+        }
 
-    correct = suspect_id == bible.killer_id
+    correct = suspect.id == bible.killer_id
     accusation = AccusationResult(
-        accused_id=suspect_id,
+        accused_id=suspect.id,
         correct=correct,
         actual_killer_id=bible.killer_id,
     )
 
     if correct:
-        accused = next(s for s in bible.suspects if s.id == suspect_id)
         text = (
-            f"You accuse {accused.name}. After a long pause, they confess. "
+            f"You accuse {suspect.name}. After a long pause, they confess. "
             f"The case is solved in {state['turn_count'] + 1} turns."
         )
     else:
         actual = next(s for s in bible.suspects if s.id == bible.killer_id)
         text = (
-            f"You accuse {suspect_id}. They are innocent. "
+            f"You accuse {suspect.name}. They are innocent. "
             f"The real killer was {actual.name} — and they have already fled."
         )
 

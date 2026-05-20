@@ -156,6 +156,23 @@ def test_accuse_unknown_suspect_is_withdrawn(valid_bible: CaseBible) -> None:
     assert "withdrawn" in update["last_output"]
 
 
+def test_accuse_resolves_suspect_by_name(valid_bible: CaseBible) -> None:
+    """A player who types the last name should still be able to accuse."""
+    state = initial_state(valid_bible)
+    update = apply_accuse(state, valid_bible, suspect_id="Hodges")
+    assert update["accusation"].accused_id == "butler"
+    assert update["accusation"].correct is True
+
+
+def test_accuse_resolves_suspect_by_archetype(valid_bible: CaseBible) -> None:
+    state = initial_state(valid_bible)
+    update = apply_accuse(state, valid_bible, suspect_id="cook")
+    # The fixture's killer is the butler, so cook is wrong — but it should
+    # still have *resolved* to the cook (not been withdrawn).
+    assert update["accusation"].accused_id == "cook"
+    assert update["accusation"].correct is False
+
+
 # ---------- interrogate ----------
 
 
@@ -172,7 +189,7 @@ def test_interrogate_unknown_suspect_returns_helpful_error(valid_bible: CaseBibl
         suspect_id="phantom",
         question="?",
     )
-    assert "no suspect 'phantom'" in update["last_output"]
+    assert "'phantom'" in update["last_output"]
     assert "turn_count" not in update  # bad input does not cost a turn
 
 

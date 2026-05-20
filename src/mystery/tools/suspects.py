@@ -14,5 +14,8 @@ if TYPE_CHECKING:
 
 def apply_suspects(bible: CaseBible) -> dict[str, Any]:
     lines = [f"  [{s.id}] {s.name} — {s.archetype}" for s in bible.suspects]
-    text = "People in this house:\n" + "\n".join(lines)
+    text = (
+        "People in this house (interrogate by id in brackets, by name, or by archetype):\n"
+        + "\n".join(lines)
+    )
     return {"last_output": text}

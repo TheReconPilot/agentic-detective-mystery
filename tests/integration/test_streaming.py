@@ -41,8 +41,12 @@ def test_apply_interrogate_streams_chunks_to_callback(valid_bible: CaseBible) ->
 
     assert update["last_output"] == ""
     joined = "".join(chunks)
-    # Prefix + reply + trailing newline.
-    assert joined.startswith("Mr. Hodges: ")
+    # The wrapper writes a "thinking…" indicator first, then erases it and
+    # paints the speaker prefix once the first chunk arrives. We assert the
+    # *visible* result rather than the raw chunk sequence so the test isn't
+    # over-coupled to ANSI escape choices.
+    assert "Mr. Hodges is thinking" in joined
+    assert "Mr. Hodges: " in joined
     assert "I was nowhere near." in joined
     assert joined.endswith("\n")
     assert update["turn_count"] == state["turn_count"] + 1

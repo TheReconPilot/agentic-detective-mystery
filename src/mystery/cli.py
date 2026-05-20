@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -173,7 +174,9 @@ def _opening_blurb(bible: CaseBible) -> str:
         f"[bold]The case of {bible.victim.name}.[/] "
         f"The {bible.victim.role.lower()} was found dead in the {death_loc.name}. "
         f"You arrive to investigate.\n\n"
-        f"[bold]People in the house:[/]\n{suspect_lines}\n\n"
+        f"[bold]People in the house[/] "
+        f"(interrogate by id in brackets, by name, or by archetype):\n"
+        f"{suspect_lines}\n\n"
         f"[bold]You are in {death_loc.name}.[/] {exits_block}\n"
         f"Type 'help' for commands, 'suspects' to re-list people, "
         f"'locations' to re-list exits.\n"
@@ -190,15 +193,16 @@ def _play_turn(state: GameState, user_input: str) -> tuple[str, bool]:
 
 
 def _stream_to_console(text: str) -> None:
-    """Print an LLM token chunk to the console without buffering or markup.
+    """Print an LLM token chunk without buffering or markup.
 
-    Rich's default ``print`` adds a trailing newline and interprets markup,
-    both of which would mangle a stream of partial tokens. We bypass Rich
-    here and write directly to its underlying file so chunks are visible
-    the moment Ollama emits them.
+    Rich's ``console.print`` adds a newline and interprets markup, both of
+    which would mangle a stream of partial tokens. We bypass Rich entirely
+    here and write straight to ``sys.stdout`` so chunks are visible the
+    moment Ollama emits them — and so nothing the Console may be doing
+    (live displays, alt-screen modes, etc.) can swallow the output.
     """
-    console.file.write(text)
-    console.file.flush()
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 
 @app.command()

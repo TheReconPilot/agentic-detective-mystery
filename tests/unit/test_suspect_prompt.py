@@ -75,3 +75,30 @@ def test_system_message_omits_voice_line_when_empty(valid_bible: CaseBible) -> N
     msgs = build_suspect_messages(butler, [], question="?")
     system = str(msgs[0].content)
     assert "How you talk:" not in system
+
+
+def test_confronting_clue_that_incriminates_suspect_demands_a_tell(
+    valid_bible: CaseBible,
+) -> None:
+    butler = _by_id(valid_bible, "butler")
+    muddy_boots = next(c for c in valid_bible.clues if c.id == "muddy_boots")
+    assert butler.id in muddy_boots.incriminates_suspect_ids  # sanity check on fixture
+
+    msgs = build_suspect_messages(butler, [], question="?", confronting_clue=muddy_boots)
+    system = str(msgs[0].content)
+    assert "real hit" in system
+    assert "physical tell" in system
+
+
+def test_confronting_clue_that_does_not_incriminate_omits_tell_instruction(
+    valid_bible: CaseBible,
+) -> None:
+    cook = _by_id(valid_bible, "cook")
+    muddy_boots = next(c for c in valid_bible.clues if c.id == "muddy_boots")
+    assert cook.id not in muddy_boots.incriminates_suspect_ids
+
+    msgs = build_suspect_messages(cook, [], question="?", confronting_clue=muddy_boots)
+    system = str(msgs[0].content)
+    assert "real hit" not in system
+    # The base confrontation framing must still appear so cook reacts to the item.
+    assert "holding up a piece of evidence" in system

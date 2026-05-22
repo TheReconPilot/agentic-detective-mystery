@@ -52,22 +52,34 @@ def _render_commitments(commitments: list[Commitment]) -> str:
     )
 
 
-def _render_confronting_clue(clue: Clue | None) -> str:
+def _render_confronting_clue(clue: Clue | None, suspect_id: str | None = None) -> str:
     """Render the 'detective is holding up X' block when a clue is being shown.
 
-    This is the M10 hinge: a clue that contradicts a prior commitment is
-    the moment the deception policy is supposed to crack. The block
-    deliberately frames the moment as physical confrontation, not abstract
-    question — the suspect can SEE the evidence.
+    When the clue's ``incriminates_suspect_ids`` includes this suspect, the
+    block adds a hit-specific instruction asking for ONE small visible tell
+    inside the reply — a hesitation, a tightened jaw, a swallowed word — so
+    the player can feel when they've struck a real chord. The suspect still
+    doesn't confess; the deception policy reasserts in the same turn.
     """
     if clue is None:
         return ""
-    return (
+    base = (
         f"The detective is now holding up a piece of evidence: {clue.description}\n"
         "You must react to seeing it in front of you. If it contradicts something "
         "you previously told this detective, your deception policy says how you "
         "should cope — bluster, deny, redirect, or break — but DO react. Generic "
         "denial without engaging with the specific item is forbidden.\n"
+    )
+    is_hit = suspect_id is not None and suspect_id in clue.incriminates_suspect_ids
+    if not is_hit:
+        return base
+    return base + (
+        "This particular clue is a real hit — it genuinely points at you. Your "
+        "composure cracks for a heartbeat: include ONE small physical tell in your "
+        "reply (a brief pause described in prose, a swallowed word, a glance away, "
+        "a momentarily tightened jaw) BEFORE your deception policy reasserts in "
+        "the same turn. The tell must be a single short clause embedded in your "
+        "response — do NOT confess, and do NOT break character.\n"
     )
 
 
@@ -83,7 +95,7 @@ def _render_system(
     )
     voice_line = f"How you talk: {suspect.voice}\n" if suspect.voice else ""
     commitments_block = _render_commitments(prior_commitments or [])
-    clue_block = _render_confronting_clue(confronting_clue)
+    clue_block = _render_confronting_clue(confronting_clue, suspect.id)
     return (
         f"You are {suspect.name}, a {suspect.archetype} caught up in a murder mystery.\n"
         f"{motive_line}\n"

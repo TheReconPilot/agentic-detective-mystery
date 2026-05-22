@@ -96,8 +96,11 @@ def _make_analyze_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]
     return node
 
 
-def _notebook_node(state: GameState) -> dict[str, Any]:
-    return apply_notebook(state)
+def _make_notebook_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
+    def node(state: GameState) -> dict[str, Any]:
+        return apply_notebook(state, bible)
+
+    return node
 
 
 def _help_node(_state: GameState) -> dict[str, Any]:
@@ -194,7 +197,7 @@ def build_game_graph(
     builder.add_node("move", _make_move_node(bible))
     builder.add_node("examine", _make_examine_node(bible))
     builder.add_node("analyze", _make_analyze_node(bible))
-    builder.add_node("notebook", _notebook_node)
+    builder.add_node("notebook", _make_notebook_node(bible))
     builder.add_node("accuse", _make_accuse_node(bible))
     builder.add_node(
         "interrogate",

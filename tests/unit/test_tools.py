@@ -114,7 +114,7 @@ def test_examine_in_empty_room_is_a_no_op_except_turn_cost(
 
 def test_notebook_shows_initial_victim_note(valid_bible: CaseBible) -> None:
     state = initial_state(valid_bible)
-    update = apply_notebook(state)
+    update = apply_notebook(state, valid_bible)
     assert "VICTIM" in update["last_output"]
     assert "turn_count" not in update  # free action
 
@@ -122,7 +122,7 @@ def test_notebook_shows_initial_victim_note(valid_bible: CaseBible) -> None:
 def test_notebook_when_empty(valid_bible: CaseBible) -> None:
     state = initial_state(valid_bible)
     state = _merge(state, {"notebook": []})
-    update = apply_notebook(state)
+    update = apply_notebook(state, valid_bible)
     assert update["last_output"] == "Your notebook is empty."
 
 

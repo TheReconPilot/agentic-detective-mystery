@@ -276,7 +276,11 @@ def play(
             console.print("\n[yellow](interrupted)[/]")
             continue
         if state["last_output"]:
-            console.print(state["last_output"])
+            # markup=False so id tags like "[poison_vial]" in tool outputs are
+            # printed literally rather than swallowed as unknown Rich tags.
+            # Tool outputs never use Rich markup themselves; only the opening
+            # blurb and error messages do, and those go through other paths.
+            console.print(state["last_output"], markup=False)
         if state["done"]:
             remove_save(save_path)
         else:

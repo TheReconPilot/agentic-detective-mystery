@@ -5,6 +5,7 @@ import pytest
 from mystery.graph.router import ParseError, parse_action
 from mystery.graph.state import (
     AccuseAction,
+    AnalyzeAction,
     ExamineAction,
     HelpAction,
     InterrogateAction,
@@ -23,6 +24,12 @@ from mystery.graph.state import (
         ("go library", MoveAction(location_id="library")),
         ("examine", ExamineAction()),
         ("look", ExamineAction()),
+        ("examine victim", ExamineAction(target="victim")),
+        ("examine the body", ExamineAction(target="body")),
+        ("inspect corpse", ExamineAction(target="corpse")),
+        ("analyze muddy_boots", AnalyzeAction(clue_id="muddy_boots")),
+        ("analyse muddy boots", AnalyzeAction(clue_id="muddy boots")),
+        ("forensics muddy_boots", AnalyzeAction(clue_id="muddy_boots")),
         ("notes", NotebookAction()),
         ("n", NotebookAction()),
         ("accuse butler", AccuseAction(suspect_id="butler")),
@@ -47,6 +54,12 @@ def test_show_requires_both_suspect_and_clue() -> None:
     result = parse_action("show butler")
     assert isinstance(result, ParseError)
     assert "show <suspect> <clue>" in result.message
+
+
+def test_analyze_requires_a_clue_argument() -> None:
+    result = parse_action("analyze")
+    assert isinstance(result, ParseError)
+    assert "analyze <clue>" in result.message
 
 
 def test_show_tolerates_filler_word_between_args() -> None:

@@ -19,7 +19,11 @@ Top-level: seed, victim, suspects, locations, clues, killer_id, canonical_timeli
   (Do NOT add: case_title, case_summary, witnesses, title, or any other top-level key)
 
 victim:
-  name, role, location_of_death_id, time_of_death
+  name, role, location_of_death_id, time_of_death, forensic_details
+  forensic_details is one sentence describing what a careful look at the body
+  reveals: cause of death, signs of struggle, distinctive marks. Phrase it as
+  *properties* of the method (e.g. "puncture mark on the neck consistent with
+  injection") — do NOT name the killer.
   (NOT: victim_id, location_of_death, death_location, death_time)
 
 suspects[] — each has:
@@ -38,7 +42,13 @@ locations[] — each has:
   (NOT: location_id, location_name — the field is "id")
 
 clues[] — each has:
-  id, location_id, description, incriminates_suspect_ids
+  id, location_id, description, incriminates_suspect_ids, forensic_details
+  forensic_details is one sentence about what a closer analysis reveals —
+  material origin, manufacturing marks, chemical signature, technique used.
+  Phrase as PROPERTIES that narrow the suspect set (e.g. "a small medicinal
+  vial of the type kept by household staff for pest control") — do NOT name
+  a suspect outright. The surface `description` should stay generic;
+  forensic_details is what the player earns by spending a turn on `analyze`.
   (NOT: clue_id — the field is "id")
 
 canonical_timeline[] — each has:

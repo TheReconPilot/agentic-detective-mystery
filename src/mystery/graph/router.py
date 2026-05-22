@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from mystery.graph.state import (
     AccuseAction,
     Action,
+    AnalyzeAction,
     ExamineAction,
     HelpAction,
     InterrogateAction,
@@ -38,6 +39,7 @@ class ParseError:
 _MOVE_VERBS = {"move", "go", "goto", "walk"}
 _INTERROGATE_VERBS = {"ask", "interrogate", "talk", "question", "interview"}
 _EXAMINE_VERBS = {"examine", "look", "search", "investigate", "inspect"}
+_ANALYZE_VERBS = {"analyze", "analyse", "forensic", "forensics"}
 _NOTEBOOK_VERBS = {"notebook", "notes", "n"}
 _ACCUSE_VERBS = {"accuse"}
 _SHOW_VERBS = {"show", "present", "confront"}
@@ -61,6 +63,8 @@ HELP_TEXT = (
     "  move <location>           (go/goto/walk) move to a connected location\n"
     "  ask <suspect> <question>  (question/interview/talk) interrogate a suspect\n"
     "  examine                   (look/search/investigate/inspect) look for clues\n"
+    "  examine victim            in the death room, perform a forensic look at the body\n"
+    "  analyze <clue>            (forensics) drill into a revealed clue\n"
     "  show <suspect> <clue>     (present/confront) confront a suspect with a clue;\n"
     "                            clue can be its id or any word from its description\n"
     "  notes                     show your notebook\n"
@@ -138,7 +142,22 @@ def parse_action(user_input: str) -> Action | ParseError:
         return InterrogateAction(suspect_id=suspect_id, question=question)
 
     if verb in _EXAMINE_VERBS:
-        return ExamineAction()
+        # Optional target — "examine victim" goes to the forensics branch in
+        # apply_examine. No target → legacy room sweep.
+        all_args = _strip_leading_filler(" ".join(rest).split())
+        if not all_args:
+            return ExamineAction()
+        target = _clean_arg(all_args[0]).lower()
+        return ExamineAction(target=target or None)
+
+    if verb in _ANALYZE_VERBS:
+        all_args = _strip_leading_filler(" ".join(rest).split())
+        if not all_args:
+            return ParseError("Usage: analyze <clue>")
+        clue_id = " ".join(_clean_arg(t) for t in all_args if _clean_arg(t)).strip()
+        if not clue_id:
+            return ParseError("Usage: analyze <clue>")
+        return AnalyzeAction(clue_id=clue_id)
 
     if verb in _NOTEBOOK_VERBS:
         return NotebookAction()

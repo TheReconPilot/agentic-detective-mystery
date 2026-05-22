@@ -24,6 +24,16 @@ class Victim(BaseModel):
     time_of_death: int = Field(
         description="Minutes from case t0 (negative allowed for pre-events).",
     )
+    forensic_details: str = Field(
+        default="",
+        description=(
+            "What a careful examination of the body reveals beyond the basic facts: "
+            "cause of death, signs of struggle, distinctive marks. Should describe "
+            "properties of the method (e.g. 'puncture mark on the neck consistent "
+            "with injection') rather than naming the killer. Empty string for "
+            "backward compatibility with bibles generated before this field existed."
+        ),
+    )
 
 
 class Location(BaseModel):
@@ -116,6 +126,16 @@ class Clue(BaseModel):
     description: str
     incriminates_suspect_ids: list[str] = Field(
         description="Suspects this clue points to. May include red herrings.",
+    )
+    forensic_details: str = Field(
+        default="",
+        description=(
+            "What a closer forensic analysis of this clue reveals — material origin, "
+            "manufacturing marks, chemical signature, technique used. Should narrow "
+            "the set of plausible suspects via *properties* (e.g. 'a small medicinal "
+            "vial of the type kept by household staff for pest control'), NOT name a "
+            "suspect outright. Empty string for backward compatibility."
+        ),
     )
 
 

@@ -38,6 +38,17 @@ class InterrogateAction(BaseModel):
 class ExamineAction(BaseModel):
     model_config = _StrictAction
     kind: Literal["examine"] = "examine"
+    # None → sweep the current room (the legacy behaviour).
+    # "victim" → forensic look at the body, only meaningful in the death room.
+    target: str | None = None
+
+
+class AnalyzeAction(BaseModel):
+    """Forensic drill-down on a single revealed clue."""
+
+    model_config = _StrictAction
+    kind: Literal["analyze"] = "analyze"
+    clue_id: str
 
 
 class NotebookAction(BaseModel):
@@ -83,6 +94,7 @@ Action = Annotated[
     MoveAction
     | InterrogateAction
     | ExamineAction
+    | AnalyzeAction
     | NotebookAction
     | AccuseAction
     | ShowAction

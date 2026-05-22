@@ -19,12 +19,15 @@ from langgraph.graph import END, StateGraph
 from mystery.graph.router import HELP_TEXT
 from mystery.graph.state import (
     AccuseAction,
+    AnalyzeAction,
+    ExamineAction,
     GameState,
     InterrogateAction,
     MoveAction,
     ShowAction,
 )
 from mystery.tools.accuse import apply_accuse
+from mystery.tools.analyze import apply_analyze
 from mystery.tools.examine import apply_examine
 from mystery.tools.interrogate import apply_interrogate
 from mystery.tools.locations import apply_locations
@@ -46,6 +49,7 @@ if TYPE_CHECKING:
 _ACTION_NODES = (
     "move",
     "examine",
+    "analyze",
     "notebook",
     "accuse",
     "interrogate",
@@ -76,7 +80,18 @@ def _make_move_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
 
 def _make_examine_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
     def node(state: GameState) -> dict[str, Any]:
-        return apply_examine(state, bible)
+        action = state["pending_action"]
+        assert isinstance(action, ExamineAction)
+        return apply_examine(state, bible, target=action.target)
+
+    return node
+
+
+def _make_analyze_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
+    def node(state: GameState) -> dict[str, Any]:
+        action = state["pending_action"]
+        assert isinstance(action, AnalyzeAction)
+        return apply_analyze(state, bible, action.clue_id)
 
     return node
 
@@ -178,6 +193,7 @@ def build_game_graph(
 
     builder.add_node("move", _make_move_node(bible))
     builder.add_node("examine", _make_examine_node(bible))
+    builder.add_node("analyze", _make_analyze_node(bible))
     builder.add_node("notebook", _notebook_node)
     builder.add_node("accuse", _make_accuse_node(bible))
     builder.add_node(

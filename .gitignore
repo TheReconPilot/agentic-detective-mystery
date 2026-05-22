@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Local env overrides (per-developer model selection, etc.)
+.env
+
 # Test/coverage artifacts
 .coverage
 .pytest_cache/

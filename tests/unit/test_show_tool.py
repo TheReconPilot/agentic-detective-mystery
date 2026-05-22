@@ -58,7 +58,8 @@ def test_show_unknown_clue_returns_helpful_error(valid_bible: CaseBible) -> None
         suspect_id="butler",
         clue_id="imaginary_clue",
     )
-    assert "no clue called 'imaginary_clue'" in update["last_output"]
+    assert "imaginary_clue" in update["last_output"]
+    assert "not sure which clue" in update["last_output"]
     assert "turn_count" not in update
 
 
@@ -128,6 +129,66 @@ def test_show_with_revealed_clue_invokes_agent_and_costs_a_turn(
     assert "Mr. Hodges" in update["last_output"]
     assert "I... I have never seen that letter before" in update["last_output"]
     assert "you show" in update["last_output"].lower()
+
+
+def test_show_resolves_clue_by_description_word(valid_bible: CaseBible) -> None:
+    """Players can type a word from the description instead of the snake_case id."""
+    embeddings = DeterministicFakeEmbedding(size=16)
+    vectorstore = build_index(build_chunks(valid_bible), embeddings)
+    chat = FakeListChatModel(responses=["That letter is not mine."])
+
+    state = initial_state(valid_bible)
+    state = _merge(state, {"revealed_clue_ids": ["torn_letter"]})
+
+    update = apply_show(
+        state,
+        valid_bible,
+        vectorstore,
+        chat,
+        suspect_id="butler",
+        clue_id="letter",
+    )
+    assert update["turn_count"] == state["turn_count"] + 1
+    assert "torn letter" in update["last_output"].lower()
+
+
+def test_show_resolves_multi_word_clue_description(valid_bible: CaseBible) -> None:
+    """A multi-word reference like 'torn letter' resolves to torn_letter."""
+    embeddings = DeterministicFakeEmbedding(size=16)
+    vectorstore = build_index(build_chunks(valid_bible), embeddings)
+    chat = FakeListChatModel(responses=["..."])
+
+    state = initial_state(valid_bible)
+    state = _merge(state, {"revealed_clue_ids": ["torn_letter"]})
+
+    update = apply_show(
+        state,
+        valid_bible,
+        vectorstore,
+        chat,
+        suspect_id="butler",
+        clue_id="torn letter",
+    )
+    assert update["turn_count"] == state["turn_count"] + 1
+
+
+def test_show_lists_revealed_inventory_when_clue_ref_is_unknown(
+    valid_bible: CaseBible,
+) -> None:
+    state = initial_state(valid_bible)
+    state = _merge(state, {"revealed_clue_ids": ["torn_letter"]})
+    update = apply_show(
+        state,
+        valid_bible,
+        vectorstore=None,  # type: ignore[arg-type]
+        chat_model=None,  # type: ignore[arg-type]
+        suspect_id="butler",
+        clue_id="vacuum_cleaner",
+    )
+    # The error names what they typed and lists what they actually have.
+    assert "vacuum_cleaner" in update["last_output"]
+    assert "torn_letter" in update["last_output"]
+    assert "turn_count" not in update
 
 
 class _StaticExtractor:

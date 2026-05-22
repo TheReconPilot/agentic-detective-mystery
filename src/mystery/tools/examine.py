@@ -26,8 +26,11 @@ def apply_examine(state: GameState, bible: CaseBible) -> dict[str, Any]:
     if not clues_here:
         text = "You search the room thoroughly. Nothing of interest catches your eye."
     elif not fresh:
-        text = "You see only the clues you have already catalogued: " + ", ".join(
-            c.id for c in clues_here
+        # Re-printing descriptions (not just ids) on re-examine, so a player
+        # who has forgotten the slug can still see "the muddy boots" and use
+        # that phrase with `show`.
+        text = "You see only the clues you have already catalogued:\n" + "\n".join(
+            f"  - {c.description} [{c.id}]" for c in clues_here
         )
     else:
         text = "You find:\n" + "\n".join(f"  - {c.description} [{c.id}]" for c in fresh)

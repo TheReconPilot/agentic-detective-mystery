@@ -55,6 +55,17 @@ def test_show_tolerates_filler_word_between_args() -> None:
     assert result == ShowAction(suspect_id="butler", clue_id="muddy_boots")
 
 
+def test_show_captures_multi_word_clue_reference() -> None:
+    """The clue arg keeps all trailing tokens so resolve_clue can match by description."""
+    result = parse_action("show butler torn letter")
+    assert result == ShowAction(suspect_id="butler", clue_id="torn letter")
+
+
+def test_show_strips_filler_inside_multi_word_clue_reference() -> None:
+    result = parse_action("show butler the muddy boots")
+    assert result == ShowAction(suspect_id="butler", clue_id="muddy boots")
+
+
 def test_parses_interrogate_with_multiword_question() -> None:
     result = parse_action("ask butler where were you last night")
     assert isinstance(result, InterrogateAction)

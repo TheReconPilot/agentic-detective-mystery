@@ -17,7 +17,12 @@ from typing import TYPE_CHECKING, Any
 from mystery.agents.commitments import NullCommitmentExtractor
 from mystery.agents.suspect import respond_as_suspect
 from mystery.rag.retriever import suspect_retriever
-from mystery.tools._resolve import format_suspect_roster, resolve_suspect
+from mystery.tools._resolve import (
+    format_revealed_clues,
+    format_suspect_roster,
+    resolve_clue,
+    resolve_suspect,
+)
 from mystery.tools._streaming import StreamingPrefix
 
 if TYPE_CHECKING:
@@ -51,19 +56,25 @@ def apply_show(
             )
         }
 
-    clue = next((c for c in bible.clues if c.id == clue_id), None)
+    clue = resolve_clue(bible, clue_id, state["revealed_clue_ids"])
     if clue is None:
+        inventory = format_revealed_clues(bible, state["revealed_clue_ids"])
+        # Distinguish "no such clue at all" from "exists but not yet found",
+        # since the player's next move is different (rethink vs. go examine).
+        exists = any(c.id == clue_id for c in bible.clues)
+        if exists and clue_id not in state["revealed_clue_ids"]:
+            return {
+                "last_output": (
+                    f"You haven't found {clue_id!r} yet. "
+                    f"You can only confront a suspect with clues you have actually examined.\n"
+                    f"Clues you have found so far:\n{inventory}"
+                ),
+            }
         return {
             "last_output": (
-                f"You have no clue called {clue_id!r}. "
-                f"Check your notebook for the clues you have found."
-            ),
-        }
-    if clue_id not in state["revealed_clue_ids"]:
-        return {
-            "last_output": (
-                f"You haven't found {clue_id!r} yet. "
-                f"You can only confront a suspect with clues you have actually examined."
+                f"I'm not sure which clue you mean by {clue_id!r}. "
+                f"You can confront with any clue you have found (by id or by description):\n"
+                f"{inventory}"
             ),
         }
 

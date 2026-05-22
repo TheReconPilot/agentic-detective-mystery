@@ -61,7 +61,8 @@ HELP_TEXT = (
     "  move <location>           (go/goto/walk) move to a connected location\n"
     "  ask <suspect> <question>  (question/interview/talk) interrogate a suspect\n"
     "  examine                   (look/search/investigate/inspect) look for clues\n"
-    "  show <suspect> <clue>     (present/confront) confront a suspect with a clue\n"
+    "  show <suspect> <clue>     (present/confront) confront a suspect with a clue;\n"
+    "                            clue can be its id or any word from its description\n"
     "  notes                     show your notebook\n"
     "  suspects                  (who) list everyone you can interrogate\n"
     "  locations                 (map/where) show this room and where you can go\n"
@@ -161,7 +162,10 @@ def parse_action(user_input: str) -> Action | ParseError:
         remaining = _strip_leading_filler(all_args[1:])
         if not remaining:
             return ParseError("Usage: show <suspect> <clue>")
-        clue_id = _clean_arg(remaining[0])
+        # Preserve the rest of the line as a multi-word clue reference so
+        # players can type "show butler torn letter" or "show butler the
+        # muddy boots" — resolve_clue handles the token matching.
+        clue_id = " ".join(_clean_arg(t) for t in remaining if _clean_arg(t)).strip()
         if not suspect_id or not clue_id:
             return ParseError("Usage: show <suspect> <clue>")
         return ShowAction(suspect_id=suspect_id, clue_id=clue_id)

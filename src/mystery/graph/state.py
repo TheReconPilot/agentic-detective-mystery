@@ -90,6 +90,13 @@ class LocationsAction(BaseModel):
     kind: Literal["locations"] = "locations"
 
 
+class TopicsAction(BaseModel):
+    """Free action: list things the player can ``ask <suspect> about <topic>``."""
+
+    model_config = _StrictAction
+    kind: Literal["topics"] = "topics"
+
+
 Action = Annotated[
     MoveAction
     | InterrogateAction
@@ -100,7 +107,8 @@ Action = Annotated[
     | ShowAction
     | HelpAction
     | SuspectsAction
-    | LocationsAction,
+    | LocationsAction
+    | TopicsAction,
     Field(discriminator="kind"),
 ]
 

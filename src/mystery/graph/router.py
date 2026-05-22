@@ -26,6 +26,7 @@ from mystery.graph.state import (
     NotebookAction,
     ShowAction,
     SuspectsAction,
+    TopicsAction,
 )
 
 
@@ -46,6 +47,7 @@ _SHOW_VERBS = {"show", "present", "confront"}
 _HELP_VERBS = {"help", "?", "h"}
 _SUSPECTS_VERBS = {"suspects", "who", "people"}
 _LOCATIONS_VERBS = {"locations", "map", "where", "exits"}
+_TOPICS_VERBS = {"topics", "ideas"}
 
 # Filler words after verb that should be dropped, e.g. "move to library".
 _FILLER_AFTER_VERB = {"to", "the", "into", "toward", "towards", "at", "with"}
@@ -62,12 +64,14 @@ HELP_TEXT = (
     "Commands (synonyms shown in parens):\n"
     "  move <location>           (go/goto/walk) move to a connected location\n"
     "  ask <suspect> <question>  (question/interview/talk) interrogate a suspect\n"
+    "  ask <suspect> about <X>   shortcut: X may be a clue, location, or other suspect\n"
     "  examine                   (look/search/investigate/inspect) look for clues\n"
     "  examine victim            in the death room, perform a forensic look at the body\n"
     "  analyze <clue>            (forensics) drill into a revealed clue\n"
     "  show <suspect> <clue>     (present/confront) confront a suspect with a clue;\n"
     "                            clue can be its id or any word from its description\n"
     "  notes                     show your notebook\n"
+    "  topics                    list what you can ask suspects about\n"
     "  suspects                  (who) list everyone you can interrogate\n"
     "  locations                 (map/where) show this room and where you can go\n"
     "  accuse <suspect>          end the game by naming the killer\n"
@@ -197,5 +201,8 @@ def parse_action(user_input: str) -> Action | ParseError:
 
     if verb in _LOCATIONS_VERBS:
         return LocationsAction()
+
+    if verb in _TOPICS_VERBS:
+        return TopicsAction()
 
     return ParseError(f"Unknown command {verb!r}. Type 'help' for commands.")

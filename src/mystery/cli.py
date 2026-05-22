@@ -180,7 +180,7 @@ def _opening_blurb(bible: CaseBible) -> str:
         f"{suspect_lines}\n\n"
         f"[bold]You are in {death_loc.name}.[/] {exits_block}\n"
         f"Type 'help' for commands, 'suspects' to re-list people, "
-        f"'locations' to re-list exits.\n"
+        f"'topics' to see what you can ask about.\n"
     )
 
 

@@ -35,6 +35,7 @@ from mystery.tools.move import apply_move
 from mystery.tools.notebook import apply_notebook
 from mystery.tools.show import apply_show
 from mystery.tools.suspects import apply_suspects
+from mystery.tools.topics import apply_topics
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -57,6 +58,7 @@ _ACTION_NODES = (
     "help",
     "suspects",
     "locations",
+    "topics",
 )
 
 
@@ -117,6 +119,13 @@ def _make_suspects_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any
 def _make_locations_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
     def node(state: GameState) -> dict[str, Any]:
         return apply_locations(state, bible)
+
+    return node
+
+
+def _make_topics_node(bible: CaseBible) -> Callable[[GameState], dict[str, Any]]:
+    def node(state: GameState) -> dict[str, Any]:
+        return apply_topics(state, bible)
 
     return node
 
@@ -212,6 +221,7 @@ def build_game_graph(
     builder.add_node("help", _help_node)
     builder.add_node("suspects", _make_suspects_node(bible))
     builder.add_node("locations", _make_locations_node(bible))
+    builder.add_node("topics", _make_topics_node(bible))
 
     builder.set_conditional_entry_point(_route, {n: n for n in _ACTION_NODES})
 

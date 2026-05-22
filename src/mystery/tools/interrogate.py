@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from mystery.agents.commitments import NullCommitmentExtractor
 from mystery.agents.suspect import respond_as_suspect
 from mystery.rag.retriever import suspect_retriever
-from mystery.tools._resolve import format_suspect_roster, resolve_suspect
+from mystery.tools._resolve import format_suspect_roster, resolve_clue, resolve_suspect
 from mystery.tools._streaming import StreamingPrefix
 
 if TYPE_CHECKING:
@@ -24,6 +24,53 @@ if TYPE_CHECKING:
     from mystery.agents.commitments import CommitmentExtractor
     from mystery.graph.state import GameState
     from mystery.models import CaseBible
+
+
+def _expand_topic_question(state: GameState, bible: CaseBible, question: str) -> str:
+    """Expand ``about <topic>`` into a full natural-language question.
+
+    Topics resolve in this order: revealed clue → other suspect → visited
+    location. Unresolved or non-topic questions pass through unchanged so
+    the existing free-form path is unaffected.
+    """
+    stripped = question.strip()
+    lower = stripped.lower()
+    prefix = None
+    for cand in ("about the ", "about a ", "about an ", "about "):
+        if lower.startswith(cand):
+            prefix = cand
+            break
+    if prefix is None:
+        return question
+    topic = stripped[len(prefix) :].strip(" ?.,!:;")
+    if not topic:
+        return question
+
+    clue = resolve_clue(bible, topic, state["revealed_clue_ids"])
+    if clue is not None:
+        return (
+            f"I want to ask you about something specific: {clue.description} "
+            "What can you tell me about it?"
+        )
+
+    suspect = resolve_suspect(bible, topic)
+    if suspect is not None:
+        return (
+            f"What can you tell me about {suspect.name}? Where they were tonight, "
+            "what you know of them — anything."
+        )
+
+    by_id = {loc.id: loc for loc in bible.locations}
+    for loc in bible.locations:
+        if loc.id in state["visited_location_ids"] and (
+            loc.id.lower() == topic.lower() or loc.name.lower() == topic.lower()
+        ):
+            return (
+                f"What can you tell me about {by_id[loc.id].name}? Were you there "
+                "tonight? Did you see anyone?"
+            )
+
+    return question
 
 
 def apply_interrogate(
@@ -46,6 +93,7 @@ def apply_interrogate(
             )
         }
 
+    expanded_question = _expand_topic_question(state, bible, question)
     retriever = suspect_retriever(vectorstore, suspect_id=suspect.id)
     prior = state["suspect_commitments"].get(suspect.id, [])
 
@@ -54,7 +102,7 @@ def apply_interrogate(
         suspect,
         retriever,
         chat_model,
-        question=question,
+        question=expanded_question,
         prior_commitments=prior,
         stream_callback=wrapped,
     )
@@ -62,7 +110,7 @@ def apply_interrogate(
         wrapped.finalize()
 
     extractor: CommitmentExtractor = commitment_extractor or NullCommitmentExtractor()
-    new_commitment = extractor.extract(suspect, question, reply)
+    new_commitment = extractor.extract(suspect, expanded_question, reply)
     # Streaming path has already painted the reply to the terminal; suppress
     # the duplicate display by emptying last_output. Non-streaming path
     # behaves exactly as before.

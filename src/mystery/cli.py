@@ -21,6 +21,7 @@ from mystery.models import CaseBible
 from mystery.rag.chunks import build_chunks
 from mystery.rag.indexer import build_index, get_or_build_index
 from mystery.rag.retriever import suspect_retriever
+from mystery.save import apply_save_to_state, read_save, remove_save, save_path_for, write_save
 
 if TYPE_CHECKING:
     from langchain_core.embeddings import Embeddings
@@ -213,6 +214,11 @@ def play(
         "--stream/--no-stream",
         help="Stream suspect replies token-by-token (default on).",
     ),
+    fresh: bool = typer.Option(
+        False,
+        "--fresh",
+        help="Discard any auto-saved progress and start over.",
+    ),
 ) -> None:
     """Play the case end-to-end in a REPL."""
     settings = Settings()
@@ -230,8 +236,20 @@ def play(
         stream_callback=stream_callback,
     )
 
+    save_path = save_path_for(settings.cases_dir, seed)
+    if fresh:
+        remove_save(save_path)
+
     state = initial_state(bible)
-    console.print(_opening_blurb(bible))
+    snapshot = None if fresh else read_save(save_path)
+    if snapshot is not None:
+        apply_save_to_state(state, snapshot)
+        console.print(
+            f"[dim](resuming saved game — turn {state['turn_count']}, "
+            f"in {state['current_location_id']}. Use --fresh to start over.)[/]",
+        )
+    else:
+        console.print(_opening_blurb(bible))
 
     while not state["done"]:
         console.print(
@@ -259,6 +277,10 @@ def play(
             continue
         if state["last_output"]:
             console.print(state["last_output"])
+        if state["done"]:
+            remove_save(save_path)
+        else:
+            write_save(state, seed, save_path)
 
     console.print(f"\n[bold]Turns used: {state['turn_count']}.[/]")
 

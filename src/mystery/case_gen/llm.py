@@ -1,6 +1,14 @@
 """Concrete BibleLLM backed by Ollama via langchain-ollama.
 
 Kept separate from the generator so tests can avoid importing langchain.
+
+Two underlying clients live on the same instance:
+
+  * ``_chat_freeform`` — plain ChatOllama, no structured-output binding. Used
+    for the stage-1 premise expansion. With no JSON-schema grammar competing
+    for sampling weight, a small model commits to the rolled setting properly.
+  * ``_chat_structured`` — the same ChatOllama with the inlined CaseBible
+    schema bound via ``format=``. Used only for the stage-2 bible generation.
 """
 
 from __future__ import annotations
@@ -48,7 +56,11 @@ def _inline_refs(schema: dict[str, Any]) -> dict[str, Any]:
 
 
 class OllamaBibleLLM:
-    """Wraps ChatOllama with structured output bound to CaseBible."""
+    """Wraps ChatOllama for both stages of case generation.
+
+    The free-form and structured clients share temperature/seed/base_url so
+    the two-stage call still behaves deterministically for a given seed.
+    """
 
     def __init__(self, model: str, seed: int, base_url: str | None = None) -> None:
         chat = ChatOllama(
@@ -60,14 +72,22 @@ class OllamaBibleLLM:
             # in main content when reasoning=None, which breaks JSON parsing.
             reasoning=False,
         )
+        self._chat_freeform = chat
         # Inline $defs so Ollama's grammar constraint covers nested schemas too.
         inline_schema = _inline_refs(CaseBible.model_json_schema())
-        self._chat = chat.bind(format=inline_schema)
+        self._chat_structured = chat.bind(format=inline_schema)
+
+    def generate_premise_text(self, system: str, user: str) -> str:
+        """Stage 1: short atmospheric paragraph, no schema attached."""
+        messages = [SystemMessage(content=system), HumanMessage(content=user)]
+        response = self._chat_freeform.invoke(messages)
+        return str(response.content).strip()
 
     def generate_bible(self, system: str, user: str) -> CaseBible:
+        """Stage 2: structured CaseBible with the inlined schema bound."""
         messages = [SystemMessage(content=system), HumanMessage(content=user)]
         try:
-            response = self._chat.invoke(messages)
+            response = self._chat_structured.invoke(messages)
             content = _strip_json_fence(str(response.content))
             return CaseBible.model_validate_json(content)
         except (json.JSONDecodeError, ValueError) as e:

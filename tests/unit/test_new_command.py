@@ -26,6 +26,10 @@ def test_new_writes_bible_to_cases_dir(
     monkeypatch.setenv("MYSTERY_CASES_DIR", str(cases_dir))
 
     class _StubLLM:
+        def generate_premise_text(self, system: str, user: str) -> str:
+            del system, user
+            return "stub premise paragraph"
+
         def generate_bible(self, system: str, user: str) -> CaseBible:
             del system, user
             return valid_bible
@@ -53,6 +57,10 @@ def test_new_surfaces_generation_failure(
     broken = valid_bible.model_copy(update={"killer_id": "ghost"})
 
     class _BadLLM:
+        def generate_premise_text(self, system: str, user: str) -> str:
+            del system, user
+            return "stub premise paragraph"
+
         def generate_bible(self, system: str, user: str) -> CaseBible:
             del system, user
             return broken

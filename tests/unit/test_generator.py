@@ -12,12 +12,26 @@ if TYPE_CHECKING:
 
 
 class _ScriptedLLM:
-    """Returns each scripted item in turn; raises Exceptions, yields CaseBibles."""
+    """Returns each scripted bible in turn; raises Exceptions, yields CaseBibles.
 
-    def __init__(self, script: list[object]) -> None:
+    Records BOTH the stage-1 (premise text) and stage-2 (structured bible)
+    prompts so tests can assert on either. The stage-1 call is invoked exactly
+    once per ``generate_bible``; only the stage-2 call retries.
+    """
+
+    def __init__(self, script: list[object], premise_text: str = "PREMISE TEXT") -> None:
         self._script = list(script)
         self.calls = 0
         self.user_prompts: list[str] = []
+        self.premise_text = premise_text
+        self.premise_calls = 0
+        self.premise_user_prompts: list[str] = []
+
+    def generate_premise_text(self, system: str, user: str) -> str:
+        del system
+        self.premise_calls += 1
+        self.premise_user_prompts.append(user)
+        return self.premise_text
 
     def generate_bible(self, system: str, user: str) -> CaseBible:
         del system
@@ -34,6 +48,8 @@ def test_returns_bible_on_first_success(valid_bible: CaseBible) -> None:
     result = generate_bible(seed=1, llm=llm)
     assert result == valid_bible
     assert llm.calls == 1
+    # Stage-1 fires exactly once per generation regardless of stage-2 retries.
+    assert llm.premise_calls == 1
 
 
 def test_retries_on_invariant_violation(valid_bible: CaseBible) -> None:
@@ -42,6 +58,8 @@ def test_retries_on_invariant_violation(valid_bible: CaseBible) -> None:
     result = generate_bible(seed=1, llm=llm, max_attempts=3)
     assert result == valid_bible
     assert llm.calls == 2
+    # The premise is rolled once and reused across retries — not re-expanded.
+    assert llm.premise_calls == 1
 
 
 def test_gives_up_after_max_attempts(valid_bible: CaseBible) -> None:
@@ -71,3 +89,40 @@ def test_retry_feeds_validation_error_back_into_prompt(valid_bible: CaseBible) -
     # Second call: includes the BibleInvariantError text from the first failure.
     assert "ghost" in llm.user_prompts[1]
     assert "previous attempt" in llm.user_prompts[1].lower()
+
+
+def test_stage1_premise_is_passed_to_stage2(valid_bible: CaseBible) -> None:
+    """Stage-2 prompts must quote the stage-1 premise text as creative anchor."""
+    llm = _ScriptedLLM([valid_bible], premise_text="A POIROT-FREE LOCKED-ROOM SETUP")
+    generate_bible(seed=1, llm=llm)
+    assert llm.premise_calls == 1
+    assert "POIROT-FREE LOCKED-ROOM SETUP" in llm.user_prompts[0]
+
+
+def test_stage2_prompt_contains_rolled_premise_constraints(valid_bible: CaseBible) -> None:
+    """Stage-2 must include the rolled setting/era/cast as hard constraints.
+
+    Without this, the LLM falls back to its prior and the diversity gain
+    from rolling the premise in Python is lost.
+    """
+    llm = _ScriptedLLM([valid_bible])
+    generate_bible(seed=1, llm=llm)
+    from mystery.case_gen.premise import roll_premise
+
+    premise = roll_premise(1)
+    assert premise.setting in llm.user_prompts[0]
+    assert premise.era in llm.user_prompts[0]
+    # At least one rolled role should appear in the prompt.
+    assert any(role in llm.user_prompts[0] for role in premise.cast_roles)
+
+
+def test_retry_prompt_preserves_premise(valid_bible: CaseBible) -> None:
+    """Retries must keep the same setting — we don't want to ricochet on schema fails."""
+    broken = valid_bible.model_copy(update={"killer_id": "ghost"})
+    llm = _ScriptedLLM([broken, valid_bible])
+    generate_bible(seed=7, llm=llm, max_attempts=3)
+    from mystery.case_gen.premise import roll_premise
+
+    premise = roll_premise(7)
+    assert premise.setting in llm.user_prompts[0]
+    assert premise.setting in llm.user_prompts[1]

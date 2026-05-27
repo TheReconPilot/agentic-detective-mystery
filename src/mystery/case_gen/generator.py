@@ -3,21 +3,48 @@
 The generator is decoupled from any specific LLM via the ``BibleLLM`` protocol.
 Tests inject a stub; production wires in the Ollama implementation from
 ``mystery.case_gen.llm``.
+
+Generation is two stages (see ``prompts.py`` for the why):
+
+  1. ``roll_premise(seed)`` deterministically picks setting/era/cast/death from
+     the curated lists in ``premise.py`` — pure Python, no LLM.
+  2. ``llm.generate_premise_text(...)`` expands the rolled premise into a short
+     atmospheric paragraph (no JSON schema attached, so a small model can
+     commit fully to the setting).
+  3. ``llm.generate_bible(...)`` does the constrained structured-output call,
+     re-using the rolled premise as hard constraints. Retries on schema or
+     invariant failures feed the error back in.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from mystery.case_gen.prompts import SYSTEM_PROMPT, retry_user_prompt, user_prompt
+from mystery.case_gen.premise import roll_premise
+from mystery.case_gen.prompts import (
+    PREMISE_EXPANSION_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
+    premise_expansion_user_prompt,
+    retry_user_prompt,
+    user_prompt,
+)
 from mystery.case_gen.validate import validate_bible
 
 if TYPE_CHECKING:
+    from mystery.case_gen.premise import Premise
     from mystery.models import CaseBible
 
 
 class BibleLLM(Protocol):
-    """Anything that turns a (system, user) prompt pair into a parsed CaseBible."""
+    """The two LLM calls the generator needs.
+
+    ``generate_premise_text`` is unconstrained free-form chat; ``generate_bible``
+    is structured-output bound to the CaseBible schema. Splitting them lets the
+    same wrapper bind/unbind the schema between calls — and lets tests stub
+    each independently.
+    """
+
+    def generate_premise_text(self, system: str, user: str) -> str: ...
 
     def generate_bible(self, system: str, user: str) -> CaseBible: ...
 
@@ -39,23 +66,24 @@ def generate_bible(
     *,
     max_attempts: int = 3,
 ) -> CaseBible:
-    """Generate a CaseBible, retrying on shape or invariant violations.
+    """Generate a CaseBible: roll premise → expand prose → structured bible.
 
-    The LLM is expected to honor ``seed`` so the same (seed, model) pair tends
-    to produce the same case. The retry loop catches both Pydantic shape errors
-    (raised by the LLM wrapper during structured-output parsing) and our own
-    semantic invariants.
+    The premise is rolled (and the prose expanded) ONCE up front, then reused
+    across retries. We don't want a retry to land in a different setting — the
+    user's seed is meant to be stable, and stage 1 is the slow part.
     """
     if max_attempts < 1:
         raise ValueError("max_attempts must be >= 1")
 
+    premise = roll_premise(seed)
+    premise_text = llm.generate_premise_text(
+        PREMISE_EXPANSION_SYSTEM_PROMPT,
+        premise_expansion_user_prompt(premise),
+    )
+
     last_error: Exception | None = None
     for attempt in range(max_attempts):
-        prompt = (
-            user_prompt(seed)
-            if last_error is None
-            else retry_user_prompt(seed, last_error, attempt)
-        )
+        prompt = _build_stage2_prompt(seed, premise, premise_text, last_error, attempt)
         try:
             bible = llm.generate_bible(SYSTEM_PROMPT, prompt)
             validate_bible(bible)
@@ -67,3 +95,16 @@ def generate_bible(
 
     assert last_error is not None  # the loop ran at least once
     raise GenerationFailed(max_attempts, last_error)
+
+
+def _build_stage2_prompt(
+    seed: int,
+    premise: Premise,
+    premise_text: str,
+    last_error: Exception | None,
+    attempt: int,
+) -> str:
+    """Select first-attempt vs retry prompt; keep the premise anchored either way."""
+    if last_error is None:
+        return user_prompt(seed, premise, premise_text)
+    return retry_user_prompt(seed, premise, last_error, attempt)

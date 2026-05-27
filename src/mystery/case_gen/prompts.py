@@ -3,9 +3,30 @@
 Kept in plain Python strings (rather than LangChain PromptTemplate objects)
 because the generator passes them through a Protocol that knows nothing about
 LangChain. The Ollama wrapper applies them as system/user messages.
+
+Generation is two-stage:
+
+  1. A short *premise expansion* prompt asks the LLM, with no JSON schema
+     attached, to flesh out a Python-rolled (setting, era, cast, death) into
+     a four-to-six sentence atmospheric paragraph plus a victim sketch. This
+     stage exists to free the model from its "Edwardian manor" prior; with no
+     schema competing for attention, the small instruct models commit to the
+     rolled setting properly.
+
+  2. The structured-output prompt (`SYSTEM_PROMPT` + `user_prompt`) reuses
+     the rolled premise as hard constraints AND quotes the expanded paragraph
+     as creative anchor, then asks for the full CaseBible. Because the cast
+     roles are dictated up-front, the model can't fall back on butler/maid/
+     cook regardless of how heavily its prior pulls that direction.
 """
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mystery.case_gen.premise import Premise
+
 
 SYSTEM_PROMPT = """\
 You are a mystery-game case designer. Your job is to invent a single self-contained
@@ -67,7 +88,9 @@ Hard requirements:
   phrase, and one topic they steer away from.
 - 4 to 6 locations forming a small connected graph (use `connected_location_ids`).
   Edges must be bidirectional: if A lists B in connected_location_ids then B must
-  list A too.
+  list A too. Location names MUST fit the setting given in the user prompt — do
+  not invent libraries, studies, drawing rooms, or hallways unless the setting
+  is literally a manor house.
 - 4 to 8 physical clues scattered across locations. At least one clue MUST
   incriminate the killer; some clues may point to innocents as red herrings.
 - Each suspect needs at least one alibi whose `time_window` covers
@@ -78,20 +101,59 @@ Hard requirements:
   and `incriminates_suspect_ids` entry must match an id that exists in the bible.
 
 Style:
-- Atmospheric but terse. Think Agatha Christie, not pulp.
-- Time is measured in integer minutes from case t0 (the start of the evening).
-"""
-
-USER_PROMPT_TEMPLATE = """\
-Generate a complete CaseBible with seed={seed}.
-
-Use the seed as a creative anchor: different seeds should yield meaningfully
-different settings, casts, and motives. Set the `seed` field of the bible to {seed}.
+- Atmospheric but terse. Stay in the setting given by the user — every name,
+  location, motive, and clue should feel native to it. Period and idiom should
+  match the era.
+- Time is measured in integer minutes from case t0 (the start of the case).
 """
 
 
-def user_prompt(seed: int) -> str:
-    return USER_PROMPT_TEMPLATE.format(seed=seed)
+PREMISE_EXPANSION_SYSTEM_PROMPT = """\
+You are a mystery-story brainstormer. The user will hand you a rolled premise:
+a setting, an era, a list of suspect roles, and how the victim died. Your job
+is to flesh it out as PLAIN PROSE — no JSON, no lists, no headers.
+
+Write four to six sentences that:
+  - name the victim (a name that fits the era and setting),
+  - give the victim a one-phrase role in this world,
+  - place the death in a specific room/area within the setting,
+  - hint at one tension between two of the listed suspect roles,
+  - establish the time-of-day and mood.
+
+Do not invent suspect roles beyond those given. Do not name suspects yet —
+keep them as their roles. Stay terse and atmospheric. No meta-commentary.
+"""
+
+
+def premise_expansion_user_prompt(premise: Premise) -> str:
+    """Render a rolled premise as the stage-1 free-text expansion prompt."""
+    roles_lines = "\n".join(f"  - {r}" for r in premise.cast_roles)
+    return (
+        f"Setting: {premise.setting}\n"
+        f"Era: {premise.era}\n"
+        f"Suspect roles:\n{roles_lines}\n"
+        f"How the victim died: {premise.death_scenario}\n\n"
+        "Write the four-to-six-sentence prose expansion now."
+    )
+
+
+def user_prompt(seed: int, premise: Premise, premise_text: str) -> str:
+    """Stage-2 prompt: ask for the full structured CaseBible.
+
+    The rolled premise goes in as bullet-pointed hard constraints; the
+    stage-1 prose paragraph follows as creative anchor. Both are needed —
+    the constraints stop the model from drifting to butler/maid/cook, and
+    the prose gives it a concrete victim, mood, and tension to build on.
+    """
+    return (
+        f"Generate a complete CaseBible with seed={seed}.\n\n"
+        f"HARD CONSTRAINTS (do not deviate):\n"
+        f"{premise.to_constraint_text()}\n\n"
+        f"Use this brainstormed prose as creative anchor — borrow its victim "
+        f"name, room of death, and tensions; expand into the full bible:\n\n"
+        f"  {premise_text.strip()}\n\n"
+        f"Set the `seed` field of the bible to {seed}."
+    )
 
 
 _RETRY_PROMPT_TEMPLATE = """\
@@ -100,6 +162,11 @@ Your previous attempt #{attempt} at seed={seed} failed validation:
     {error}
 
 Generate a NEW complete CaseBible for seed={seed} that fixes this problem.
+The HARD CONSTRAINTS below still apply unchanged — do not change the setting,
+era, cast roles, or death scenario:
+
+{constraints}
+
 Be especially careful that every id you reference (locations in alibis and
 clues, suspect ids in witnesses and clue.incriminates_suspect_ids, the
 killer_id) refers to something you actually defined elsewhere in the bible.
@@ -107,11 +174,17 @@ Set the `seed` field of the bible to {seed}.
 """
 
 
-def retry_user_prompt(seed: int, error: Exception, attempt: int) -> str:
+def retry_user_prompt(seed: int, premise: Premise, error: Exception, attempt: int) -> str:
     """Prompt for a retry attempt, surfacing the prior validation error.
 
     The bare retry loop produced ~50% failure rates on real LLMs because each
     attempt was blind to the previous mistake. Feeding the error back lets the
-    model cross-check its ids on the next try.
+    model cross-check its ids on the next try. The rolled premise is repeated
+    because retries otherwise lose the anchor and drift back to defaults.
     """
-    return _RETRY_PROMPT_TEMPLATE.format(seed=seed, error=error, attempt=attempt)
+    return _RETRY_PROMPT_TEMPLATE.format(
+        seed=seed,
+        error=error,
+        attempt=attempt,
+        constraints=premise.to_constraint_text(),
+    )

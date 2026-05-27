@@ -29,7 +29,7 @@ from mystery.case_gen.prompts import (
     user_prompt,
 )
 from mystery.case_gen.validate import validate_bible
-from mystery.models import CaseBible, Location
+from mystery.models import Alibi, CaseBible, Location, Suspect
 
 if TYPE_CHECKING:
     from mystery.case_gen.premise import Premise
@@ -101,14 +101,44 @@ def generate_bible(
 def _repair_mechanical(bible: CaseBible) -> CaseBible:
     """Auto-fix purely-mechanical violations the LLM keeps re-introducing.
 
-    Bidirectional location edges are bookkeeping, not story. Small instruct
-    models routinely list ``A -> B`` and then forget the back-edge from B,
-    burning a whole retry on a one-line fix. We repair it in Python instead
-    of asking the model to redo a 200-field JSON object. Creative invariants
-    (killer alibi is a lie, killer is incriminated, etc.) are NOT auto-fixed
-    — those still trigger a retry because they require story rework.
+    Bookkeeping mistakes — forgotten back-edges, witness IDs that don't match
+    any suspect — burn whole retries on what amount to one-line fixes. We
+    repair them in Python before validation. Creative invariants (killer
+    alibi is a lie, killer is incriminated, etc.) are NOT auto-fixed — those
+    still trigger a retry because they require the model to rework the story.
     """
-    return _symmetrize_location_edges(bible)
+    bible = _symmetrize_location_edges(bible)
+    bible = _drop_unknown_alibi_witnesses(bible)
+    return bible
+
+
+def _drop_unknown_alibi_witnesses(bible: CaseBible) -> CaseBible:
+    """Null out ``corroborating_witness_id``s that don't match any real suspect.
+
+    Small models, especially on unfamiliar settings, occasionally cite a
+    witness role rather than a suspect id ("waiter", "guard") — characters
+    they never added to the suspects list. The schema allows ``None``, and
+    a witness-less alibi is fine; better than the LLM ricocheting through
+    five retries trying to invent a "waiter" suspect.
+    """
+    suspect_ids = {s.id for s in bible.suspects}
+    changed = False
+    new_suspects: list[Suspect] = []
+    for s in bible.suspects:
+        new_alibis: list[Alibi] = []
+        for a in s.alibis:
+            if (
+                a.corroborating_witness_id is not None
+                and a.corroborating_witness_id not in suspect_ids
+            ):
+                new_alibis.append(a.model_copy(update={"corroborating_witness_id": None}))
+                changed = True
+            else:
+                new_alibis.append(a)
+        new_suspects.append(s.model_copy(update={"alibis": new_alibis}))
+    if not changed:
+        return bible
+    return bible.model_copy(update={"suspects": new_suspects})
 
 
 def _symmetrize_location_edges(bible: CaseBible) -> CaseBible:

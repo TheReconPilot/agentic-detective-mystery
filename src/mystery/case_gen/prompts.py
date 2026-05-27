@@ -99,6 +99,9 @@ Hard requirements:
 - All ids are lowercase snake_case slugs (e.g. "butler", "library"). Unique per type.
 - Cross-references must resolve: every `location_id`, `corroborating_witness_id`,
   and `incriminates_suspect_ids` entry must match an id that exists in the bible.
+- The suspects you create are the ONLY characters in the case. Do not name a
+  witness or incriminated party that is not one of the suspects in this bible.
+  If an alibi has no corroborator among the suspects, use `null`, not a made-up id.
 
 Style:
 - Atmospheric but terse. Stay in the setting given by the user — every name,

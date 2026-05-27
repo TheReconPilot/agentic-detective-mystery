@@ -128,6 +128,50 @@ def test_retry_prompt_preserves_premise(valid_bible: CaseBible) -> None:
     assert premise.setting in llm.user_prompts[1]
 
 
+def test_unknown_witness_id_is_nulled_not_retried(valid_bible: CaseBible) -> None:
+    """A bogus corroborating_witness_id is mechanical — drop it, don't retry.
+
+    Models on unfamiliar settings sometimes cite a role ('waiter') as a
+    witness rather than picking from the actual suspect list. The schema
+    accepts None, so we null out the unknown id rather than burning retries.
+    """
+    from mystery.models import Alibi, Suspect
+
+    # Plant a witness reference that doesn't match any suspect id.
+    broken_suspects = [
+        (
+            Suspect(
+                id=s.id,
+                name=s.name,
+                archetype=s.archetype,
+                motive=s.motive,
+                alibis=[
+                    Alibi(
+                        location_id=s.alibis[0].location_id,
+                        time_window=s.alibis[0].time_window,
+                        is_true=s.alibis[0].is_true,
+                        corroborating_witness_id="fictional_waiter",
+                    )
+                ],
+                knowledge=s.knowledge,
+                deception_policy=s.deception_policy,
+                voice=s.voice,
+            )
+            if s.id == "niece"
+            else s
+        )
+        for s in valid_bible.suspects
+    ]
+    broken = valid_bible.model_copy(update={"suspects": broken_suspects})
+
+    llm = _ScriptedLLM([broken])
+    result = generate_bible(seed=1, llm=llm, max_attempts=3)
+
+    assert llm.calls == 1
+    niece = next(s for s in result.suspects if s.id == "niece")
+    assert niece.alibis[0].corroborating_witness_id is None
+
+
 def test_asymmetric_edges_are_repaired_not_retried(valid_bible: CaseBible) -> None:
     """A one-way edge is mechanical — fix it, don't burn a retry on it.
 

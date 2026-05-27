@@ -49,6 +49,25 @@ def _check_killer_is_a_suspect(bible: CaseBible) -> None:
         )
 
 
+def _check_victim_is_not_a_suspect(bible: CaseBible) -> None:
+    """A character cannot be both the victim and a suspect.
+
+    Models occasionally collapse the two when the rolled cast contains the
+    obvious occupant of the room of death (e.g. cast lists 'the head chef',
+    setting is a restaurant kitchen — model picks 'the head chef' as the
+    victim AND lists 'the head chef' as a suspect with the same name).
+    """
+    victim_name = bible.victim.name.strip().lower()
+    if not victim_name:
+        return
+    clashing = [s.id for s in bible.suspects if s.name.strip().lower() == victim_name]
+    if clashing:
+        raise BibleInvariantError(
+            f"victim name {bible.victim.name!r} collides with suspect ids {clashing}; "
+            f"the victim must be a separate character",
+        )
+
+
 def _check_location_refs(bible: CaseBible) -> None:
     location_ids = {loc.id for loc in bible.locations}
 
@@ -144,6 +163,7 @@ def validate_bible(bible: CaseBible) -> None:
     """
     _check_unique_ids(bible)
     _check_killer_is_a_suspect(bible)
+    _check_victim_is_not_a_suspect(bible)
     _check_location_refs(bible)
     _check_location_edges_are_symmetric(bible)
     _check_suspect_refs(bible)

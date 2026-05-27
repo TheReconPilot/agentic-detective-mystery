@@ -102,6 +102,12 @@ Hard requirements:
 - The suspects you create are the ONLY characters in the case. Do not name a
   witness or incriminated party that is not one of the suspects in this bible.
   If an alibi has no corroborator among the suspects, use `null`, not a made-up id.
+- The VICTIM is a separate character from every suspect. The victim has their
+  own name and role; no suspect may share the victim's name. If the rolled
+  cast contains a role that would obviously be killed in this setting (e.g.
+  "the head chef" in a restaurant), keep that role as a SUSPECT and invent
+  a different victim (a visiting critic, a senior partner, a relative — pick
+  whichever fits).
 
 Style:
 - Atmospheric but terse. Stay in the setting given by the user — every name,
@@ -118,7 +124,9 @@ is to flesh it out as PLAIN PROSE — no JSON, no lists, no headers.
 
 Write four to six sentences that:
   - name the victim (a name that fits the era and setting),
-  - give the victim a one-phrase role in this world,
+  - give the victim a one-phrase role in this world — a role DIFFERENT from
+    every suspect role; the victim is a separate character, never one of the
+    listed suspects,
   - place the death in a specific room/area within the setting,
   - hint at one tension between two of the listed suspect roles,
   - establish the time-of-day and mood.

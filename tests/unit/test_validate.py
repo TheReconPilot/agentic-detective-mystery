@@ -16,6 +16,25 @@ def test_rejects_killer_not_in_suspects(valid_bible: CaseBible) -> None:
         validate_bible(bad)
 
 
+def test_rejects_victim_who_is_also_a_suspect(valid_bible: CaseBible) -> None:
+    """A suspect can't share the victim's name; they'd be the same person."""
+    # Rename one suspect to match the victim.
+    impersonator = valid_bible.suspects[0].model_copy(update={"name": valid_bible.victim.name})
+    bad = valid_bible.model_copy(update={"suspects": [impersonator, *valid_bible.suspects[1:]]})
+    with pytest.raises(BibleInvariantError, match="victim name"):
+        validate_bible(bad)
+
+
+def test_victim_name_check_is_case_insensitive(valid_bible: CaseBible) -> None:
+    """Don't be defeated by 'Lord Ashworth' vs 'LORD ASHWORTH'."""
+    impersonator = valid_bible.suspects[0].model_copy(
+        update={"name": valid_bible.victim.name.upper()},
+    )
+    bad = valid_bible.model_copy(update={"suspects": [impersonator, *valid_bible.suspects[1:]]})
+    with pytest.raises(BibleInvariantError, match="victim name"):
+        validate_bible(bad)
+
+
 def test_rejects_alibi_to_unknown_location(valid_bible: CaseBible) -> None:
     butler = valid_bible.suspects[0].model_copy(
         update={

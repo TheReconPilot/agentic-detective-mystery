@@ -1,0 +1,328 @@
+{
+  "seed": 99,
+  "victim": {
+    "name": "Eleanor Vance",
+    "role": "Hostess",
+    "location_of_death_id": "study",
+    "time_of_death": 95
+  },
+  "suspects": [
+    {
+      "id": "butler",
+      "name": "Arthur Penhaligon",
+      "archetype": "The Servant",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            20,
+            120
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "maid"
+        }
+      ],
+      "knowledge": [
+        "He knows the house layout intimately and the exact time the power was cut.",
+        "He knows the master key was left in the study.",
+        "He knows Eleanor's tea was poisoned with strychnine."
+      ],
+      "deception_policy": "He speaks in passive voice and deflects questions with polite deflection.",
+      "voice": "Arthur speaks with a clipped, precise rhythm, often using the phrase 'At your service'. He avoids discussing the evening's events directly, steering conversation toward inventory or weather. His sentences are short and devoid of emotion."
+    },
+    {
+      "id": "mrs_harlow",
+      "name": "Mrs. Harlow",
+      "archetype": "The Widow",
+      "motive": "Financial ruin and inheritance greed.",
+      "alibis": [
+        {
+          "location_id": "drawing_room",
+          "time_window": [
+            80,
+            110
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        },
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            110,
+            130
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "butler"
+        }
+      ],
+      "knowledge": [
+        "She knows the study door was locked from the inside.",
+        "She knows the poison bottle was missing from the cabinet.",
+        "She knows Arthur was in the kitchen the whole time."
+      ],
+      "deception_policy": "She lies smoothly to protect her reputation, often omitting key details while remaining polite.",
+      "voice": "Mrs. Harlow speaks in a high-pitched, breathless cadence, frequently using the phrase 'Oh dear'. She avoids admitting to any fear or anger, steering conversation toward her late husband's virtues."
+    },
+    {
+      "id": "young_hunter",
+      "name": "Silas Thorne",
+      "archetype": "The Guest",
+      "motive": "Revenge for a past hunting accident.",
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            60,
+            100
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        },
+        {
+          "location_id": "study",
+          "time_window": [
+            95,
+            105
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "He knows the study window was open.",
+        "He knows he saw Mrs. Harlow leave the house at 90 minutes.",
+        "He knows Eleanor was alone in the study."
+      ],
+      "deception_policy": "He brags about his hunting skills and deflects suspicion by claiming he was 'just looking around'.",
+      "voice": "Silas speaks with a casual, drawling rhythm, often using the phrase 'You know how it is'. He avoids discussing the murder directly, steering conversation toward hunting trophies and game."
+    },
+    {
+      "id": "doctor_ross",
+      "name": "Dr. Ross",
+      "archetype": "The Physician",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            85,
+            115
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "maid"
+        }
+      ],
+      "knowledge": [
+        "He knows the victim died of cardiac arrest, not poisoning.",
+        "He knows the poison bottle was fake.",
+        "He knows the butler was seen near the kitchen."
+      ],
+      "deception_policy": "He speaks clinically and evasively, hiding the true nature of the victim's condition.",
+      "voice": "Dr. Ross speaks in a flat, monotone voice, often using the phrase 'It is interesting'. He avoids emotional topics, steering conversation toward medical terminology and statistics."
+    },
+    {
+      "id": "maid",
+      "name": "Agnes",
+      "archetype": "The Maid",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            70,
+            120
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "butler"
+        }
+      ],
+      "knowledge": [
+        "She knows she was serving tea in the drawing room at 90 minutes.",
+        "She knows the study door was locked.",
+        "She knows Dr. Ross was in the kitchen."
+      ],
+      "deception_policy": "She stammers and lies about her whereabouts to avoid being blamed.",
+      "voice": "Agnes speaks in a nervous, high-pitched whisper, often using the phrase 'I don't know'. She avoids discussing the murder, steering conversation toward cleaning tasks."
+    }
+  ],
+  "locations": [
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "A large, bustling kitchen with a massive stove and a window overlooking the garden.",
+      "connected_location_ids": [
+        "drawing_room",
+        "library",
+        "study"
+      ]
+    },
+    {
+      "id": "drawing_room",
+      "name": "Drawing Room",
+      "description": "A grand room with a fireplace, heavy velvet curtains, and a grand piano.",
+      "connected_location_ids": [
+        "kitchen",
+        "library",
+        "study"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "A dimly lit room filled with books and a large desk, connected to the drawing room by a door.",
+      "connected_location_ids": [
+        "kitchen",
+        "drawing_room",
+        "study"
+      ]
+    },
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "The private office of the hostess, containing a desk, a safe, and a window.",
+      "connected_location_ids": [
+        "kitchen",
+        "drawing_room",
+        "library"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "poison_bottle",
+      "location_id": "kitchen",
+      "description": "An empty glass bottle labeled 'Strychnine' found on the counter.",
+      "incriminates_suspect_ids": [
+        "butler"
+      ]
+    },
+    {
+      "id": "false_poison",
+      "location_id": "kitchen",
+      "description": "A second, identical bottle found in the trash, containing only sugar water.",
+      "incriminates_suspect_ids": [
+        "doctor_ross"
+      ]
+    },
+    {
+      "id": "broken_window",
+      "location_id": "study",
+      "description": "A small chip in the window pane, suggesting forced entry or a thrown object.",
+      "incriminates_suspect_ids": [
+        "young_hunter"
+      ]
+    },
+    {
+      "id": "missing_key",
+      "location_id": "study",
+      "description": "The master key to the study was found in the study, not the butler's pocket.",
+      "incriminates_suspect_ids": [
+        "butler"
+      ]
+    },
+    {
+      "id": "wet_footprints",
+      "location_id": "drawing_room",
+      "description": "Wet footprints leading from the door to the fireplace.",
+      "incriminates_suspect_ids": [
+        "young_hunter"
+      ]
+    },
+    {
+      "id": "locked_room",
+      "location_id": "study",
+      "description": "The study door was found locked from the inside, with no keyhole access.",
+      "incriminates_suspect_ids": [
+        "mrs_harlow"
+      ]
+    }
+  ],
+  "killer_id": "young_hunter",
+  "canonical_timeline": [
+    {
+      "time": 0,
+      "actor_id": "victim",
+      "location_id": "drawing_room",
+      "description": "Eleanor Vance arrives at the estate for the evening gathering."
+    },
+    {
+      "time": 20,
+      "actor_id": "butler",
+      "location_id": "kitchen",
+      "description": "Arthur begins preparing tea in the kitchen."
+    },
+    {
+      "time": 50,
+      "actor_id": "young_hunter",
+      "location_id": "library",
+      "description": "Silas enters the library and begins reading."
+    },
+    {
+      "time": 60,
+      "actor_id": "young_hunter",
+      "location_id": "library",
+      "description": "Silas claims to be reading in the library."
+    },
+    {
+      "time": 70,
+      "actor_id": "maid",
+      "location_id": "kitchen",
+      "description": "Agnes is serving tea in the kitchen."
+    },
+    {
+      "time": 80,
+      "actor_id": "mrs_harlow",
+      "location_id": "drawing_room",
+      "description": "Mrs. Harlow is seated in the drawing room."
+    },
+    {
+      "time": 85,
+      "actor_id": "doctor_ross",
+      "location_id": "kitchen",
+      "description": "Dr. Ross checks the tea supplies in the kitchen."
+    },
+    {
+      "time": 90,
+      "actor_id": "maid",
+      "location_id": "drawing_room",
+      "description": "Agnes serves tea to Mrs. Harlow in the drawing room."
+    },
+    {
+      "time": 92,
+      "actor_id": "young_hunter",
+      "location_id": "study",
+      "description": "Silas enters the study where Eleanor is alone."
+    },
+    {
+      "time": 95,
+      "actor_id": "young_hunter",
+      "location_id": "study",
+      "description": "Silas stabs Eleanor Vance in the study."
+    },
+    {
+      "time": 100,
+      "actor_id": "young_hunter",
+      "location_id": "study",
+      "description": "Silas leaves the study through the door, locking it from the inside."
+    },
+    {
+      "time": 105,
+      "actor_id": "young_hunter",
+      "location_id": "library",
+      "description": "Silas returns to the library, claiming he was just looking around."
+    },
+    {
+      "time": 110,
+      "actor_id": "mrs_harlow",
+      "location_id": "kitchen",
+      "description": "Mrs. Harlow leaves the drawing room and enters the kitchen."
+    },
+    {
+      "time": 120,
+      "actor_id": "butler",
+      "location_id": "kitchen",
+      "description": "Arthur continues his duties in the kitchen."
+    }
+  ]
+}

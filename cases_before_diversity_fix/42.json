@@ -1,0 +1,262 @@
+{
+  "seed": 42,
+  "victim": {
+    "name": "Arthur Penhaligon",
+    "role": "reclusive collector",
+    "location_of_death_id": "study",
+    "time_of_death": 145,
+    "forensic_details": "A puncture mark on the side of the neck consistent with an injection. Skin around the entry is faintly bruised \u2014 the body was held briefly. No defensive wounds. Cyanide is the apparent agent."
+  },
+  "suspects": [
+    {
+      "id": "housekeeper",
+      "name": "Eleanor Vance",
+      "archetype": "The Nervous Servant",
+      "motive": "fear of unemployment",
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            90,
+            165
+          ],
+          "is_true": true,
+          "corroborating_witness_id": "cook"
+        }
+      ],
+      "knowledge": [
+        "She knows Arthur kept a secret ledger in his study."
+      ],
+      "deception_policy": "She avoids looking the killer in the eye and speaks in hushed tones about money.",
+      "voice": "Her sentences are breathless and fragmented. She frequently apologizes for 'disturbing the peace' and refers to herself in the third person as 'the help'."
+    },
+    {
+      "id": "butler",
+      "name": "Silas Thorne",
+      "archetype": "The Stoic Butler",
+      "motive": "revenge for his late wife's death",
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            120,
+            150
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "He knows Arthur's collection is worth more than the house.",
+        "He knows Arthur had a scheduled delivery of poison at 145 minutes."
+      ],
+      "deception_policy": "He maintains a calm, monotone demeanor and insists on strict protocol, often refusing to admit to basic tasks like drinking tea.",
+      "voice": "His speech is clipped and precise, devoid of emotion. He uses formal titles for everyone and avoids discussing the weather or food."
+    },
+    {
+      "id": "guest",
+      "name": "Julian Cross",
+      "archetype": "The Charismatic Stranger",
+      "motive": "inheritance",
+      "alibis": [
+        {
+          "location_id": "garden",
+          "time_window": [
+            130,
+            170
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "He knows Arthur was arguing about the will in the library.",
+        "He knows the location of the hidden safe in the study."
+      ],
+      "deception_policy": "He speaks rapidly and changes the subject when pressed, often laughing nervously to deflect serious questions.",
+      "voice": "He uses grandiose language and rhetorical questions. He frequently interrupts others to make a point about his own superiority."
+    },
+    {
+      "id": "cook",
+      "name": "Maria Rossi",
+      "archetype": "The Grumpy Cook",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            135,
+            155
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "She knows she heard a struggle in the study at 145 minutes."
+      ],
+      "deception_policy": "She refuses to elaborate on her feelings and speaks only about food or her health.",
+      "voice": "She speaks with a thick accent and uses food metaphors constantly. She complains about the 'stiffness' of the staff."
+    }
+  ],
+  "locations": [
+    {
+      "id": "study",
+      "name": "The Study",
+      "description": "Arthur's private room filled with rare books and artifacts.",
+      "connected_location_ids": [
+        "library",
+        "hallway"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "The Library",
+      "description": "A vast room with a spiral staircase leading to the upper floors.",
+      "connected_location_ids": [
+        "study",
+        "hallway"
+      ]
+    },
+    {
+      "id": "hallway",
+      "name": "The Grand Hallway",
+      "description": "The central corridor connecting the main house to the garden.",
+      "connected_location_ids": [
+        "study",
+        "library",
+        "kitchen",
+        "garden"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "The Kitchen",
+      "description": "The bustling heart of the house with a large fireplace.",
+      "connected_location_ids": [
+        "hallway"
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "The Walled Garden",
+      "description": "A secluded garden with a stone wall and a gate leading to the village.",
+      "connected_location_ids": [
+        "hallway"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "poison_vial",
+      "location_id": "study",
+      "description": "A shattered vial of cyanide found on the desk.",
+      "incriminates_suspect_ids": [
+        "butler"
+      ],
+      "forensic_details": "A small medicinal-type vial of the kind kept in household supplies for pest control. The residue is a refined cyanide preparation \u2014 not the kitchen-garden variety, but a concentration that needed steady hands to draw into a syringe."
+    },
+    {
+      "id": "broken_lock",
+      "location_id": "study",
+      "description": "The study door lock is picked but not forced.",
+      "incriminates_suspect_ids": [
+        "guest",
+        "butler"
+      ],
+      "forensic_details": "The pick marks are unhurried and clean \u2014 done by someone with time and access, not a panicked break-in. The work suggests practice rather than improvisation."
+    },
+    {
+      "id": "muddy_boots",
+      "location_id": "hallway",
+      "description": "Fresh mud tracks leading from the garden to the study.",
+      "incriminates_suspect_ids": [
+        "guest"
+      ],
+      "forensic_details": "The soil composition matches the eastern flowerbed of the garden, freshly disturbed within the last few hours. The tread is broad and shallow \u2014 leisurely walking, not running."
+    },
+    {
+      "id": "missing_spice",
+      "location_id": "kitchen",
+      "description": "A jar of salt is empty, suggesting someone was preparing a meal.",
+      "incriminates_suspect_ids": [],
+      "forensic_details": "The empty jar bears recent fingerprints typical of kitchen staff in the middle of meal prep. Nothing irregular about its absence given dinner preparations."
+    },
+    {
+      "id": "scuffed_shoe",
+      "location_id": "hallway",
+      "description": "A scuff mark on the floor matching the guest's shoe tread.",
+      "incriminates_suspect_ids": [
+        "guest"
+      ],
+      "forensic_details": "Size 11, narrow tread; matches dress shoes of the kind worn by an out-of-house guest, not household staff. Direction of the scuff suggests someone who paused mid-stride."
+    },
+    {
+      "id": "secret_letter",
+      "location_id": "library",
+      "description": "A letter hidden in a book about Arthur's business dealings.",
+      "incriminates_suspect_ids": [
+        "guest"
+      ],
+      "forensic_details": "The letter discusses a contested clause in Arthur's will \u2014 a beneficiary who would gain substantially from his death. Hidden in a book whose spine had been broken open recently."
+    },
+    {
+      "id": "wilted_flower",
+      "location_id": "garden",
+      "description": "A single wilted rose found near the gate.",
+      "incriminates_suspect_ids": [],
+      "forensic_details": "A rose plucked from inside the garden, not the gate side. The crushed angle of the petals suggests it was carried briefly in a pocket and discarded."
+    }
+  ],
+  "killer_id": "butler",
+  "canonical_timeline": [
+    {
+      "time": 0,
+      "actor_id": "housekeeper",
+      "location_id": "kitchen",
+      "description": "Eleanor finishes her evening cleaning in the kitchen."
+    },
+    {
+      "time": 90,
+      "actor_id": "housekeeper",
+      "location_id": "kitchen",
+      "description": "Eleanor is still cleaning and preparing tea."
+    },
+    {
+      "time": 120,
+      "actor_id": "butler",
+      "location_id": "library",
+      "description": "Silas is in the library organizing books, lying about his location."
+    },
+    {
+      "time": 130,
+      "actor_id": "guest",
+      "location_id": "garden",
+      "description": "Julian is walking in the garden, leaving muddy tracks."
+    },
+    {
+      "time": 135,
+      "actor_id": "cook",
+      "location_id": "kitchen",
+      "description": "Maria is chopping vegetables in the kitchen."
+    },
+    {
+      "time": 145,
+      "actor_id": "butler",
+      "location_id": "study",
+      "description": "Silas enters the study and injects Arthur with poison."
+    },
+    {
+      "time": 150,
+      "actor_id": "butler",
+      "location_id": "library",
+      "description": "Silas leaves the study and returns to the library to maintain his false alibi."
+    },
+    {
+      "time": 165,
+      "actor_id": "housekeeper",
+      "location_id": "kitchen",
+      "description": "Eleanor is still in the kitchen, confirming her alibi."
+    }
+  ]
+}

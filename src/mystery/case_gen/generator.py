@@ -29,10 +29,10 @@ from mystery.case_gen.prompts import (
     user_prompt,
 )
 from mystery.case_gen.validate import validate_bible
+from mystery.models import CaseBible, Location
 
 if TYPE_CHECKING:
     from mystery.case_gen.premise import Premise
-    from mystery.models import CaseBible
 
 
 class BibleLLM(Protocol):
@@ -86,6 +86,7 @@ def generate_bible(
         prompt = _build_stage2_prompt(seed, premise, premise_text, last_error, attempt)
         try:
             bible = llm.generate_bible(SYSTEM_PROMPT, prompt)
+            bible = _repair_mechanical(bible)
             validate_bible(bible)
         except ValueError as e:
             last_error = e
@@ -95,6 +96,43 @@ def generate_bible(
 
     assert last_error is not None  # the loop ran at least once
     raise GenerationFailed(max_attempts, last_error)
+
+
+def _repair_mechanical(bible: CaseBible) -> CaseBible:
+    """Auto-fix purely-mechanical violations the LLM keeps re-introducing.
+
+    Bidirectional location edges are bookkeeping, not story. Small instruct
+    models routinely list ``A -> B`` and then forget the back-edge from B,
+    burning a whole retry on a one-line fix. We repair it in Python instead
+    of asking the model to redo a 200-field JSON object. Creative invariants
+    (killer alibi is a lie, killer is incriminated, etc.) are NOT auto-fixed
+    — those still trigger a retry because they require story rework.
+    """
+    return _symmetrize_location_edges(bible)
+
+
+def _symmetrize_location_edges(bible: CaseBible) -> CaseBible:
+    adj: dict[str, list[str]] = {
+        loc.id: list(loc.connected_location_ids) for loc in bible.locations
+    }
+    changed = False
+    for src, neighbours in list(adj.items()):
+        for dst in neighbours:
+            if dst in adj and src not in adj[dst]:
+                adj[dst].append(src)
+                changed = True
+    if not changed:
+        return bible
+    new_locations = [
+        Location(
+            id=loc.id,
+            name=loc.name,
+            description=loc.description,
+            connected_location_ids=adj[loc.id],
+        )
+        for loc in bible.locations
+    ]
+    return bible.model_copy(update={"locations": new_locations})
 
 
 def _build_stage2_prompt(

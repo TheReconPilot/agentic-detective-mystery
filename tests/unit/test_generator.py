@@ -126,3 +126,38 @@ def test_retry_prompt_preserves_premise(valid_bible: CaseBible) -> None:
     premise = roll_premise(7)
     assert premise.setting in llm.user_prompts[0]
     assert premise.setting in llm.user_prompts[1]
+
+
+def test_asymmetric_edges_are_repaired_not_retried(valid_bible: CaseBible) -> None:
+    """A one-way edge is mechanical — fix it, don't burn a retry on it.
+
+    Small instruct models routinely list A->B and forget B->A. The repair
+    pass adds the back-edge before validation so the bible passes on the
+    first LLM attempt, instead of consuming all retries.
+    """
+    # Strip one back-edge from the valid bible to simulate the typical LLM mistake.
+    from mystery.models import Location
+
+    broken_locations = [
+        Location(
+            id=loc.id,
+            name=loc.name,
+            description=loc.description,
+            connected_location_ids=(
+                [n for n in loc.connected_location_ids if n != "library"]
+                if loc.id == "hallway"
+                else list(loc.connected_location_ids)
+            ),
+        )
+        for loc in valid_bible.locations
+    ]
+    asymmetric = valid_bible.model_copy(update={"locations": broken_locations})
+
+    llm = _ScriptedLLM([asymmetric])
+    result = generate_bible(seed=1, llm=llm, max_attempts=3)
+
+    # One LLM call only — the asymmetry was repaired, not retried.
+    assert llm.calls == 1
+    # Back-edge is present in the result.
+    hallway = next(loc for loc in result.locations if loc.id == "hallway")
+    assert "library" in hallway.connected_location_ids

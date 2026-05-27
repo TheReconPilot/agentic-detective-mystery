@@ -1,0 +1,225 @@
+{
+  "seed": 1,
+  "victim": {
+    "name": "Hercule Watson",
+    "role": "Retired Detective",
+    "location_of_death_id": "study",
+    "time_of_death": 305,
+    "forensic_details": "A puncture mark on the neck consistent with injection."
+  },
+  "suspects": [
+    {
+      "id": "butler",
+      "name": "Reginald Hargrave",
+      "archetype": "Loyal Servant",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "kitchen",
+          "time_window": [
+            290,
+            315
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "Mr. Watson was found dead in the study at around 3:00 AM.",
+        "Mrs. Harlow and Mr. Watson had a falling out last week."
+      ],
+      "deception_policy": "Deflect suspicion by highlighting Mrs. Harlow's grudge against Mr. Watson.",
+      "voice": "Reginald speaks with a clipped, formal tone, avoiding any mention of recent conflicts within the household."
+    },
+    {
+      "id": "mrs_harlow",
+      "name": "Eleanor Harlow",
+      "archetype": "Mysterious Widow",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "library",
+          "time_window": [
+            295,
+            310
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "Mr. Watson was investigating my late husband's death.",
+        "I inherited a substantial sum upon my husband's demise."
+      ],
+      "deception_policy": "Shift attention to the butler, suggesting he had motives for revenge.",
+      "voice": "Eleanor speaks in hushed tones, often trailing off into silence when questioned about her past."
+    },
+    {
+      "id": "doctor",
+      "name": "Dr. Samuel Crane",
+      "archetype": "Skeptic Doctor",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "bedroom",
+          "time_window": [
+            290,
+            315
+          ],
+          "is_true": true,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "Mr. Watson was convinced his death would be a murder.",
+        "I prescribed Mr. Watson with a mild sedative last week."
+      ],
+      "deception_policy": "Maintain an air of uncertainty and doubt about the case's circumstances.",
+      "voice": "Dr. Crane speaks in long, winding sentences that often confuse the listener."
+    },
+    {
+      "id": "gardener",
+      "name": "Thomas Green",
+      "archetype": "Quiet Gardener",
+      "motive": null,
+      "alibis": [
+        {
+          "location_id": "greenhouse",
+          "time_window": [
+            280,
+            315
+          ],
+          "is_true": false,
+          "corroborating_witness_id": null
+        }
+      ],
+      "knowledge": [
+        "Mr. Watson often visited the greenhouse to smoke and think.",
+        "The greenhouse door was unlocked when I last checked."
+      ],
+      "deception_policy": "Divert suspicion by claiming he was elsewhere, despite a false alibi.",
+      "voice": "Thomas speaks in short, hesitant sentences, frequently pausing as if recalling details."
+    }
+  ],
+  "locations": [
+    {
+      "id": "study",
+      "name": "Study",
+      "description": "A dimly lit room filled with old books and a heavy wooden desk.",
+      "connected_location_ids": [
+        "library",
+        "kitchen"
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "description": "An expansive room lined with towering bookshelves and comfortable reading chairs.",
+      "connected_location_ids": [
+        "study",
+        "bedroom"
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "description": "A bustling area with a large stove, sink, and ample storage for dishes.",
+      "connected_location_ids": [
+        "study",
+        "greenhouse"
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "description": "A cozy room with a king-sized bed and an en suite bathroom.",
+      "connected_location_ids": [
+        "library",
+        "greenhouse"
+      ]
+    },
+    {
+      "id": "greenhouse",
+      "name": "Greenhouse",
+      "description": "An expansive glass structure filled with exotic plants and flowers.",
+      "connected_location_ids": [
+        "kitchen",
+        "bedroom"
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "id": "empty_vial",
+      "location_id": "study",
+      "description": "A small, empty vial lying on the desk near Mr. Watson's body.",
+      "incriminates_suspect_ids": [
+        "gardener"
+      ],
+      "forensic_details": "The vial is a type commonly used by gardeners for storing pest control solutions."
+    },
+    {
+      "id": "mysterious_note",
+      "location_id": "library",
+      "description": "A folded note tucked inside one of the books on the shelf.",
+      "incriminates_suspect_ids": [
+        "doctor"
+      ],
+      "forensic_details": "The handwriting matches a sample taken from Dr. Crane's prescription pad."
+    },
+    {
+      "id": "unlocked_door",
+      "location_id": "kitchen",
+      "description": "A door leading to the greenhouse is found unlocked.",
+      "incriminates_suspect_ids": [
+        "gardener"
+      ],
+      "forensic_details": "The lock shows signs of recent tampering, suggesting forced entry."
+    },
+    {
+      "id": "sedative_bottle",
+      "location_id": "bedroom",
+      "description": "A partially used bottle of sedatives on the nightstand.",
+      "incriminates_suspect_ids": [
+        "doctor"
+      ],
+      "forensic_details": "The remaining pills match a prescription given to Mr. Watson."
+    },
+    {
+      "id": "hidden_diary",
+      "location_id": "greenhouse",
+      "description": "A small diary buried beneath the soil in one of the plant pots.",
+      "incriminates_suspect_ids": [
+        "mrs_harlow"
+      ],
+      "forensic_details": "The entries suggest Mrs. Harlow had a secret meeting with Mr. Watson."
+    }
+  ],
+  "killer_id": "gardener",
+  "canonical_timeline": [
+    {
+      "time": 305,
+      "actor_id": "gardener",
+      "location_id": "study",
+      "description": "Thomas Green enters the study and administers a lethal injection to Mr. Watson."
+    },
+    {
+      "time": 295,
+      "actor_id": "mrs_harlow",
+      "location_id": "library",
+      "description": "Eleanor Harlow is seen reading in the library, unaware of the events unfolding in the study."
+    },
+    {
+      "time": 300,
+      "actor_id": "doctor",
+      "location_id": "bedroom",
+      "description": "Dr. Crane checks on Mr. Watson's health and leaves for his bedroom to rest."
+    },
+    {
+      "time": 290,
+      "actor_id": "butler",
+      "location_id": "kitchen",
+      "description": "Reginald Hargrave is observed preparing a late-night snack in the kitchen, far from the scene of the crime."
+    }
+  ]
+}

@@ -83,9 +83,20 @@ Hard requirements:
 - Exactly one killer, recorded in `killer_id`.
 - 3 to 5 suspects. Give each a distinct archetype, motive (or null for the obvious
   innocent), a deception_policy in plain English, a `knowledge` list of discrete
-  facts this character truthfully knows (one sentence each), and a `voice` of 2-3
-  sentences describing how they talk — speech rhythm, a verbal tic or favourite
-  phrase, and one topic they steer away from.
+  facts this character truthfully knows (one sentence each), and a `voice`.
+- VOICES MUST SOUND LIKE DIFFERENT PEOPLE. Each `voice` is 2-3 sentences on how the
+  character actually talks: a speech rhythm, optionally a verbal tic or favourite
+  phrase, and one specific subject they deflect. Rules that make this work:
+  * Speech rhythm: invent your own description in your own words. Cadences like
+    clipped/formal, rambling/digressive, hushed/trailing-off, blunt/monosyllabic,
+    or warm/over-explaining are ILLUSTRATIONS ONLY — do NOT copy those wordings,
+    and no two suspects may share the same cadence. Avoid giving everyone the same
+    authoritative/firm/direct tone.
+  * Deflection: name a CONCRETE, PERSONAL subject this suspect dodges — their
+    debts, a past job they were fired from, a secret relationship, a missing key,
+    where they really were last night. Each suspect dodges a DIFFERENT subject. Do
+    NOT end every voice on a generic "avoids discussing the conflict/argument with
+    the victim" clause — that phrasing is banned.
 - 4 to 6 locations forming a small connected graph (use `connected_location_ids`).
   Edges must be bidirectional: if A lists B in connected_location_ids then B must
   list A too. Location names MUST fit the setting given in the user prompt — do
